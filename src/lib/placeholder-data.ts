@@ -1,8 +1,8 @@
 // Placeholder content for the homepage. Swap these for real API/CMS data later.
 
 export const liveShow = {
-  title: "LIVE: Pins and Needles",
-  hosts: "Foxysauce Lady Flavor and Carmella Hotlegs",
+  title: "LIVE: Show Name",
+  hosts: "DJ Name",
   scheduleHref: "#",
 };
 
@@ -23,22 +23,29 @@ export const featuredBlogPost = {
 };
 
 export const newsBroadcasts = [
-  { title: "Morning News Brief", href: "#" },
-  { title: "Campus Update", href: "#" },
-  { title: "This Week In Sports", href: "#" },
+  { title: "Campus Elections and TapEx Worker Strike", duration: "12min", href: "#" },
+  { title: "Campus Update", duration: "8min", href: "#" },
+  { title: "This Week In Sports", duration: "15min", href: "#" },
 ];
 
-export const primaryNavLinks = [
-  { label: "BLOG", href: "#" },
-  { label: "GET INVOLVED", href: "#" },
+export const navSections = [
+  {
+    label: "BLOG",
+    href: "#",
+    children: [
+      { label: "MEDIA", href: "#" },
+      { label: "NEWS", href: "#" },
+    ],
+  },
   { label: "SPORTS", href: "#" },
   { label: "LIBRARY", href: "#" },
+  {
+    label: "GET INVOLVED",
+    href: "#",
+    children: [
+      { label: "INTERNS AND DJS", href: "#" },
+      { label: "BOOK A PRACTICE ROOM", href: "#" },
+    ],
+  },
   { label: "ABOUT", href: "#" },
-];
-
-export const secondaryNavLinks = [
-  { label: "MEDIA", href: "#" },
-  { label: "NEWS", href: "#" },
-  { label: "INTERNS AND DJS", href: "#" },
-  { label: "BOOK A PRACTICE ROOM", href: "#" },
 ];

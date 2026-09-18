@@ -7,16 +7,22 @@ export function NewsBroadcastingSection() {
     <section className="mt-10 border-t border-white px-4 pb-16 pt-6">
       <h2 className="text-2xl font-bold">News Broadcasting</h2>
 
-      <ul className="mt-6 space-y-6">
+      <div className="mt-6 flex flex-col gap-1">
         {newsBroadcasts.map((item) => (
-          <li key={item.title}>
-            <Link href={item.href} className="flex items-center gap-3">
-              <Image src="/images/list-arrow.svg" alt="" width={11} height={14} />
-              <span>{item.title}</span>
-            </Link>
-          </li>
+          <Link
+            key={item.title}
+            href={item.href}
+            className="flex h-[48px] items-center gap-3 border border-white pl-[15px] pr-[10px]"
+          >
+            <Image src="/images/play-icon.svg" alt="" width={13} height={16} className="shrink-0" />
+            <p className="flex-1 text-xs font-normal">
+              <span className="text-[#ff8dca]">{item.title}</span>
+              <span className="text-white">{` · ${item.duration}`}</span>
+            </p>
+            <Image src="/images/information-icon.svg" alt="" width={16} height={16} className="shrink-0" />
+          </Link>
         ))}
-      </ul>
+      </div>
 
       <div className="mt-6 text-right">
         <Link href="#" className="text-lg">
