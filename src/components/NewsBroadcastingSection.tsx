@@ -1,31 +1,38 @@
-import Image from "next/image";
 import Link from "next/link";
-import { newsBroadcasts } from "@/lib/placeholder-data";
+import { featuredNewsPost, moreNewsPosts } from "@/lib/placeholder-data";
+import { MediaCard, MediaListCard } from "@/components/MediaCard";
 
 export function NewsBroadcastingSection() {
   return (
-    <section className="mt-10 border-t border-white px-4 pb-16 pt-6">
-      <h2 className="text-2xl font-bold">News Broadcasting</h2>
+    <section className="mt-10 border-t border-white px-4 pb-16 pt-6 lg:mx-8 lg:mt-9 lg:border-t-0 lg:px-0 lg:pb-24 lg:pt-0">
+      <h2 className="text-2xl font-bold lg:text-4xl/[normal]">News</h2>
 
-      <div className="mt-6 flex flex-col gap-1">
-        {newsBroadcasts.map((item) => (
-          <Link
-            key={item.title}
-            href={item.href}
-            className="flex h-[48px] items-center gap-3 border border-white pl-[15px] pr-[10px]"
-          >
-            <Image src="/images/play-icon.svg" alt="" width={13} height={16} className="shrink-0" />
-            <p className="flex-1 text-xs font-normal">
-              <span className="text-[#ff8dca]">{item.title}</span>
-              <span className="text-white">{` · ${item.duration}`}</span>
-            </p>
-            <Image src="/images/information-icon.svg" alt="" width={16} height={16} className="shrink-0" />
-          </Link>
-        ))}
+      <div className="mt-6 lg:mt-8 lg:grid lg:grid-cols-[370px_1fr] lg:gap-4">
+        <MediaCard
+          href={featuredNewsPost.href}
+          imageSrc={featuredNewsPost.imageSrc}
+          label="FEATURED"
+          title={featuredNewsPost.title}
+          byline={featuredNewsPost.author}
+          date={featuredNewsPost.date}
+        />
+        <div className="hidden lg:flex lg:flex-col lg:gap-4">
+          {moreNewsPosts.map((post) => (
+            <MediaListCard
+              key={post.title}
+              href={post.href}
+              imageSrc={post.imageSrc}
+              label={post.label}
+              title={post.title}
+              byline={post.author}
+              date={post.date}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="mt-6 text-right">
-        <Link href="#" className="text-lg">
+      <div className="mt-6 text-right lg:mt-8">
+        <Link href="#" className="text-lg lg:text-2xl">
           See More {">>"}
         </Link>
       </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fragment_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
 const fragmentMono = Fragment_Mono({
@@ -19,7 +20,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${fragmentMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-black text-white">
         <SiteHeader />
-        <main className="mx-auto w-full max-w-md flex-1">{children}</main>
+        <main className="mx-auto w-full max-w-md flex-1 lg:max-w-none">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

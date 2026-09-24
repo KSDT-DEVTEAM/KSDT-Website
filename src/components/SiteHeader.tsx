@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { navSections } from "@/lib/placeholder-data";
@@ -8,6 +8,26 @@ import { navSections } from "@/lib/placeholder-data";
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const [desktopOpen, setDesktopOpen] = useState<string | null>(null);
+  const desktopNavRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!desktopOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!desktopNavRef.current?.contains(event.target as Node)) setDesktopOpen(null);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setDesktopOpen(null);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [desktopOpen]);
 
   const toggleSection = (label: string) => {
     setOpenSections((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -15,8 +35,8 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-black">
-      <div className="mx-auto flex h-[72px] w-full max-w-md items-center justify-between px-4">
-        <Link href="/" className="block h-[34px] w-[81px] shrink-0">
+      <div className="mx-auto flex h-[72px] w-full max-w-md items-center justify-between px-4 lg:h-16 lg:max-w-none lg:px-8">
+        <Link href="/" className="block h-[34px] w-[81px] shrink-0 lg:h-8 lg:w-[76px]">
           <Image
             src="/images/ksdt-logo.png"
             alt="KSDT Radio"
@@ -32,15 +52,57 @@ export function SiteHeader() {
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="-mr-2 p-2"
+          className="-mr-2 p-2 lg:hidden"
         >
           <Image src="/images/menu-icon.svg" alt="" width={27} height={21} priority />
         </button>
+
+        <nav ref={desktopNavRef} className="hidden items-center gap-8 text-2xl/[normal] lg:flex">
+          {navSections.map((section) => {
+            if (!section.children) {
+              return (
+                <Link key={section.label} href={section.href}>
+                  {section.label}
+                </Link>
+              );
+            }
+
+            const isOpen = desktopOpen === section.label;
+
+            return (
+              <div key={section.label} className="relative">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => setDesktopOpen(isOpen ? null : section.label)}
+                  className="flex items-center gap-2.5"
+                >
+                  <span>{section.label}</span>
+                  <Image src="/images/nav-plus.svg" alt="" width={17} height={17} />
+                </button>
+                {isOpen && (
+                  <div className="absolute right-0 top-full mt-4 flex min-w-full flex-col border border-white bg-black">
+                    {section.children.map((child) => (
+                      <Link
+                        key={child.label}
+                        href={child.href}
+                        onClick={() => setDesktopOpen(null)}
+                        className="whitespace-nowrap border-b border-white px-4 py-3 text-lg/[normal] last:border-b-0"
+                      >
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </nav>
       </div>
 
       <div
         aria-hidden={!open}
-        className={`absolute left-0 right-0 top-full z-40 grid w-full bg-black transition-[grid-template-rows] duration-200 ease-out ${
+        className={`absolute left-0 right-0 top-full z-40 grid w-full bg-black lg:hidden transition-[grid-template-rows] duration-200 ease-out ${
           open ? "grid-rows-[1fr] pointer-events-auto" : "grid-rows-[0fr] pointer-events-none"
         }`}
       >
@@ -107,7 +169,7 @@ export function SiteHeader() {
         </nav>
       </div>
 
-      <div className="absolute inset-x-0 top-[72px] z-50 h-px bg-white" />
+      <div className="absolute inset-x-0 top-[72px] z-50 h-px bg-white lg:top-[63px]" />
     </header>
   );
 }

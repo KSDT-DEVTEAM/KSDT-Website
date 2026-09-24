@@ -4,12 +4,14 @@
   --background: #000000;
   --foreground: #ffffff;
   --ksdt-pink: #ff8dca;
+  --ksdt-blue: #135bd7;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-ksdt-pink: var(--ksdt-pink);
+  --color-ksdt-blue: var(--ksdt-blue);
   --font-mono: var(--font-fragment-mono);
 }
 

@@ -9,10 +9,10 @@ export function LiveShowBanner() {
 
   return (
     <section className="w-screen mx-[calc(50%-50vw)] bg-[rgba(255,141,202,0.4)]">
-      <div className="mx-auto flex max-w-md items-center justify-between gap-4 px-4 pt-[14px] pb-[13px]">
+      <div className="mx-auto flex max-w-md items-center justify-between gap-4 px-4 pt-[14px] pb-[13px] lg:max-w-none lg:py-3 lg:pl-[35px] lg:pr-8">
         <div className="flex flex-col gap-[5px]">
-          <p className="text-lg font-bold">{liveShow.title}</p>
-          <p className="text-sm font-light">{liveShow.hosts}</p>
+          <p className="text-lg font-bold lg:leading-[normal]">{liveShow.title}</p>
+          <p className="text-sm font-light lg:text-lg/[normal]">{liveShow.hosts}</p>
         </div>
         <button
           type="button"

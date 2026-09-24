@@ -1,39 +1,38 @@
-import Image from "next/image";
 import Link from "next/link";
-import { featuredBlogPost } from "@/lib/placeholder-data";
+import { featuredBlogPost, moreBlogPosts } from "@/lib/placeholder-data";
+import { MediaCard, MediaListCard } from "@/components/MediaCard";
 
 export function BlogSection() {
   return (
-    <section className="px-4 pt-10">
-      <h2 className="text-2xl font-bold">Blog</h2>
+    <section className="mt-10 border-t border-white px-4 pt-6 lg:mx-8 lg:mt-12 lg:border-t-2 lg:px-0 lg:pt-12">
+      <h2 className="text-2xl font-bold lg:text-4xl/[normal]">Media</h2>
 
-      <Link
-        href={featuredBlogPost.href}
-        className="mt-4 block border border-white transition-opacity hover:opacity-90"
-      >
-        <div className="relative aspect-[350/192] w-full">
-          <Image
-            src={featuredBlogPost.imageSrc}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="(min-width: 448px) 402px, 100vw"
-          />
+      <div className="mt-4 lg:mt-8 lg:grid lg:grid-cols-[370px_1fr] lg:gap-4">
+        <MediaCard
+          href={featuredBlogPost.href}
+          imageSrc={featuredBlogPost.imageSrc}
+          label="FEATURED"
+          title={featuredBlogPost.title}
+          byline={featuredBlogPost.author}
+          date={featuredBlogPost.date}
+        />
+        <div className="hidden lg:flex lg:flex-col lg:gap-4">
+          {moreBlogPosts.map((post) => (
+            <MediaListCard
+              key={post.title}
+              href={post.href}
+              imageSrc={post.imageSrc}
+              label={post.label}
+              title={post.title}
+              byline={post.author}
+              date={post.date}
+            />
+          ))}
         </div>
-        <div className="px-3 py-4">
-          <p className="font-mono text-sm text-ksdt-pink">FEATURED</p>
-          <p className="mt-2 text-2xl font-light leading-snug">
-            {featuredBlogPost.title}
-          </p>
-          <div className="mt-6 flex items-center justify-between font-mono text-xs">
-            <span>{featuredBlogPost.author}</span>
-            <span>{featuredBlogPost.date}</span>
-          </div>
-        </div>
-      </Link>
+      </div>
 
-      <div className="mt-4 text-right">
-        <Link href="#" className="text-lg">
+      <div className="mt-4 text-right lg:mt-8">
+        <Link href="#" className="text-lg lg:text-2xl">
           See More {">>"}
         </Link>
       </div>
