@@ -1,22 +1,24 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const linkGroups = [
+// A link without an href renders as plain text until its page exists.
+const linkGroups: { heading: string; links: { label: string; href?: string }[] }[] = [
   {
     heading: "Explore",
     links: [
+      // "#" jumps back to the top of the current page, where the player lives.
       { label: "Listen", href: "#" },
-      { label: "Media", href: "#" },
-      { label: "News", href: "#" },
-      { label: "Sports", href: "#" },
+      { label: "Media", href: "/media" },
+      { label: "News", href: "/news" },
+      { label: "Sports", href: "/sports" },
     ],
   },
   {
     heading: "Get Involved",
     links: [
-      { label: "Join KSDT", href: "#" },
-      { label: "Book a room", href: "#" },
-      { label: "Contact", href: "#" },
+      { label: "Join KSDT" },
+      { label: "Book a room" },
+      { label: "Contact" },
     ],
   },
 ];
@@ -44,9 +46,10 @@ export function SiteFooter() {
     <footer className="w-full border-t border-white bg-black">
       <div className="mx-auto w-full max-w-md px-4 pt-[47px] leading-[normal] lg:max-w-[1152px] lg:px-8 lg:pt-[95px]">
         {/* On mobile, everything from the logo down fills the viewport (minus the header logo's
-            19px top offset), so at full scroll the footer logo sits directly under the header logo.
+            19px top offset and the streaming bar, if shown), so at full scroll the footer logo
+            sits directly under the header logo.
             On desktop it's a four-column grid with the copyright pinned to the bottom. */}
-        <div className="flex min-h-[calc(100dvh-19px)] flex-col pb-4 lg:grid lg:min-h-[356px] lg:grid-cols-4 lg:grid-rows-[auto_1fr] lg:pb-[31px]">
+        <div className="flex min-h-[calc(100dvh-19px-var(--streaming-bar-height,0px))] flex-col pb-4 lg:grid lg:min-h-[356px] lg:grid-cols-4 lg:grid-rows-[auto_1fr] lg:pb-[31px]">
           <div>
             <Link href="/" className="block h-[34px] w-[81px] lg:h-[57px] lg:w-[135px]">
               <Image
@@ -69,10 +72,14 @@ export function SiteFooter() {
                 <h2 className="text-lg/[normal] font-bold">{group.heading}</h2>
                 <ul className="mt-1 flex flex-col gap-[7px] lg:mt-2 lg:gap-[9px]">
                   {group.links.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="text-base/[normal] font-light lg:text-lg/[normal]">
-                        {link.label}
-                      </Link>
+                    <li key={link.label} className="text-base/[normal] font-light lg:text-lg/[normal]">
+                      {!link.href ? (
+                        link.label
+                      ) : link.href.startsWith("#") ? (
+                        <a href={link.href}>{link.label}</a>
+                      ) : (
+                        <Link href={link.href}>{link.label}</Link>
+                      )}
                     </li>
                   ))}
                 </ul>

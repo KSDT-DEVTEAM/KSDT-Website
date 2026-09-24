@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fragment_Mono } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { StreamingBar } from "@/components/StreamingBar";
 import "./globals.css";
 
 const fragmentMono = Fragment_Mono({
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="mx-auto w-full max-w-md flex-1 lg:max-w-none">{children}</main>
         <SiteFooter />
+        <StreamingBar />
       </body>
     </html>
   );

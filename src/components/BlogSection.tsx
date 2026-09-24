@@ -32,7 +32,7 @@ export function BlogSection() {
       </div>
 
       <div className="mt-4 text-right lg:mt-8">
-        <Link href="#" className="text-lg lg:text-2xl">
+        <Link href="/media" className="text-lg lg:text-2xl">
           See More {">>"}
         </Link>
       </div>

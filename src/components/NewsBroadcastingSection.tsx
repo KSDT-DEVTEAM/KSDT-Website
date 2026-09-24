@@ -32,7 +32,7 @@ export function NewsBroadcastingSection() {
       </div>
 
       <div className="mt-6 text-right lg:mt-8">
-        <Link href="#" className="text-lg lg:text-2xl">
+        <Link href="/news" className="text-lg lg:text-2xl">
           See More {">>"}
         </Link>
       </div>
