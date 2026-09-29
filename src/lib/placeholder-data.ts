@@ -25,7 +25,7 @@ export const featuredBlogPost = {
 // Extra posts shown beside the featured one on desktop.
 export const moreBlogPosts = [
   {
-    label: "BLOG",
+    label: "REVIEWS",
     imageSrc: "/images/blog-pop-drop.jpg",
     title: "The Pop Drop: December 2025, Issue #9",
     author: "Lola Dogat",
@@ -33,12 +33,31 @@ export const moreBlogPosts = [
     href: "/media/pop-drop-december-2025",
   },
   {
-    label: "BLOG",
+    label: "REVIEWS",
     imageSrc: "/images/blog-sarah-kinsley.jpg",
     title: "Sarah Kinsley on 'Fleeting,' an Affirmation of Yearning and Vulnerability",
     author: "Emma Cam",
     date: "12.10.26",
     href: "/media/sarah-kinsley-fleeting",
+  },
+];
+
+export const placeholderInterview = [
+  {
+    label: "INTERVIEW",
+    imageSrc: "/images/placeholder.jpg",
+    title: "Placeholder Title",
+    author: "Author",
+    date: "MM.DD.YY",
+    href: ""
+  },
+  {
+    label: "INTERVIEW",
+    imageSrc: "/images/placeholder.jpg",
+    title: "Placeholder Title",
+    author: "Author",
+    date: "MM.DD.YY",
+    href: ""
   },
 ];
 
