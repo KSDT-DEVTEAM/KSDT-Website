@@ -28,5 +28,10 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.143.1"
+  },
+  "allowScripts": {
+    "workerd@1.20260926.1": true,
+    "esbuild@0.25.4": true,
+    "esbuild@0.28.1": true
   }
 }
