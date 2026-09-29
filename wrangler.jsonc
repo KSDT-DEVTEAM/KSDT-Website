@@ -28,5 +28,10 @@
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
 	},
-	"previews": {}
+	"previews": {
+		// Previews don't inherit bindings, so re-declare the Images binding
+		"images": {
+			"binding": "IMAGES"
+		}
+	}
 }
