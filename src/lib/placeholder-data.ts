@@ -118,7 +118,7 @@ export const navSections = [
     ],
   },
   { label: "SPORTS", href: "/sports" },
-  { label: "LIBRARY", href: "/library" },
+  { label: "LIBRARY", href: "https://ksdtorg.github.io/ksdt-digital-library/" },
   {
     label: "GET INVOLVED",
     href: "#",
