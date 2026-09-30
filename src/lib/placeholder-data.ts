@@ -61,6 +61,25 @@ export const placeholderInterview = [
   },
 ];
 
+export const placeholderFeatured = [
+  {
+    label: "FEATURED",
+    imageSrc: "/images/placeholder.jpg",
+    title: "Headline Here",
+    author: "Author",
+    date: "MM.DD.YY",
+    href: ""
+  },
+  {
+    label: "FEATURED",
+    imageSrc: "/images/placeholder.jpg",
+    title: "Headline Here",
+    author: "Author",
+    date: "MM.DD.YY",
+    href: ""
+  },
+];
+
 export const featuredNewsPost = {
   imageSrc: "/images/news-football.jpg",
   title: "UC San Diego to Add Division I Football Team",
