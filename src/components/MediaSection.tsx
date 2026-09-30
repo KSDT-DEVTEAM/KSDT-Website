@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MediaCard } from "@/components/MediaCard";
 
-type MediaPost = {
+export type MediaPost = {
   href: string;
   imageSrc: string;
   title: string;
@@ -25,7 +25,7 @@ export function MediaSection({ posts, sectionTitle, path }: MediaSectionProps) {
   const visibleRest = rest.slice(0, MAX_LIST_POSTS);
 
   return (
-    <section className="px-4 pt-12 last:pb-12 lg:mx-8 lg:mt-6 lg:border-t-2 lg:px-0 lg:pt-6">
+    <section className="px-4 pt-12 last:pb-12 lg:mx-8 lg:mt-6 lg:px-0 lg:pt-6">
       <h2 className="text-2xl font-bold lg:text-4xl/[normal]">{sectionTitle}</h2>
 
       <div className="mt-4 grid grid-cols-2 gap-4 lg:mt-8">
