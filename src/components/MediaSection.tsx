@@ -38,9 +38,9 @@ export function MediaSection({ posts, sectionTitle, path }: MediaSectionProps) {
           date={featured.date}
         />
 
-        {visibleRest.map((post) => (
+        {visibleRest.map((post, i) => (
           <MediaCard
-            key={post.href}
+            key={`${post.href}-${i}`}
             href={post.href}
             imageSrc={post.imageSrc}
             label={post.label}
