@@ -9,6 +9,7 @@ import {
   type NewsPost,
 } from "@/lib/news-data";
 import { MediaCard } from "@/components/MediaCard";
+import { BroadcastList } from "@/components/BroadcastList";
 
 // The site header, footer and streaming bar come from the root layout,
 // so this page only renders the News content in between.
@@ -113,30 +114,13 @@ export default function Page() {
           </table>
         </section>
 
-        {/* Past Broadcasts */}
+                {/* Past Broadcasts */}
         <section className="px-4 pt-20">
           <h2 className="text-2xl font-bold">Past Broadcasts</h2>
-          <ul className="mt-4 flex flex-col gap-1.5">
-            {pastBroadcasts.map((broadcast) => (
-              <li
-                key={broadcast.title}
-                className="flex min-h-14 items-center gap-3 border border-white px-2 py-2"
-              >
-                {/* TODO: play the recording once the audio player is wired up. */}
-                <button type="button" aria-label={`Play ${broadcast.title}`} className="shrink-0 p-1">
-                  <Image src="/images/play-icon.svg" alt="" width={13} height={16} />
-                </button>
-                <p className="flex-1">
-                  <span className="text-ksdt-pink">{broadcast.title}</span> · {broadcast.duration}
-                </p>
-                <Link href={broadcast.href} aria-label={`About ${broadcast.title}`} className="shrink-0">
-                  <Image src="/images/information-icon.svg" alt="" width={16} height={16} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {/* TODO: link to the Past Broadcasts page once it exists. */}
-          <SeeMore href="#" />
+          <div className="mt-4">
+            <BroadcastList broadcasts={pastBroadcasts} />
+          </div>
+          <SeeMore href="/news/past-broadcasts" />
         </section>
 
         <hr className="mx-4 mt-8 border-white" />
