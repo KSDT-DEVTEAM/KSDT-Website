@@ -1,4 +1,4 @@
-import { audioInternApplicationHref, roomCalendarEmbedSrc } from "@/lib/book-data";
+import { audioInternApplicationHref, roomCalendarEmbedSrc } from "@/lib/book-a-room-data";
 
 // The site header, footer and streaming bar come from the root layout,
 // so this page only renders the Practice Rooms content in between.

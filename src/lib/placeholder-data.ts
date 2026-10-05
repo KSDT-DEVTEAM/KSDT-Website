@@ -124,7 +124,7 @@ export const navSections = [
     href: "#",
     children: [
       { label: "INTERNS AND DJS", href: "/join" },
-      { label: "BOOK A PRACTICE ROOM", href: "/book" },
+      { label: "BOOK A PRACTICE ROOM", href: "/book-a-room" },
     ],
   },
   { label: "ABOUT", href: "/about" },
