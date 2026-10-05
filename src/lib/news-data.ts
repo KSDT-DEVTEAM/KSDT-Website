@@ -13,6 +13,12 @@ export type Broadcast = {
   href: string;
 };
 
+export type BroadcastQuarter = {
+  /** Heading shown above the list, e.g. "THIS QUARTER" or "SPRING 2026". */
+  label: string;
+  broadcasts: Broadcast[];
+};
+
 export type NewsPost = {
   label: string;
   /** Leave out to show a grey placeholder until a photo is added to public/images. */
@@ -36,6 +42,15 @@ export const pastBroadcasts: Broadcast[] = [
     href: "#",
   },
   { title: "Tung Tung Tung Sahur Lookalike Contest", duration: "5min", href: "#" },
+];
+
+// Full archive for the Past Broadcasts page, newest quarter first.
+// Placeholder: every quarter repeats the same three broadcasts, three times.
+const placeholderQuarter: Broadcast[] = [...pastBroadcasts, ...pastBroadcasts, ...pastBroadcasts];
+
+export const broadcastArchive: BroadcastQuarter[] = [
+  { label: "THIS QUARTER", broadcasts: placeholderQuarter },
+  { label: "SPRING 2026", broadcasts: placeholderQuarter },
 ];
 
 export const ucsdNewsPosts: NewsPost[] = [
