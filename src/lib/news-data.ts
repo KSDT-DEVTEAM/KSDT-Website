@@ -45,12 +45,14 @@ export const pastBroadcasts: Broadcast[] = [
 ];
 
 // Full archive for the Past Broadcasts page, newest quarter first.
-// Placeholder: every quarter repeats the same three broadcasts, three times.
-const placeholderQuarter: Broadcast[] = [...pastBroadcasts, ...pastBroadcasts, ...pastBroadcasts];
+// Placeholder: every quarter repeats the same three broadcasts, four times (an even 12, so the
+// two-column desktop grid has no gap at the end).
+const placeholderQuarter: Broadcast[] = Array.from({ length: 4 }, () => pastBroadcasts).flat();
 
 export const broadcastArchive: BroadcastQuarter[] = [
   { label: "THIS QUARTER", broadcasts: placeholderQuarter },
   { label: "SPRING 2026", broadcasts: placeholderQuarter },
+  { label: "WINTER 2026", broadcasts: placeholderQuarter },
 ];
 
 export const ucsdNewsPosts: NewsPost[] = [
