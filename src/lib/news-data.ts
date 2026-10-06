@@ -1,6 +1,8 @@
 // Placeholder content for the News page. Swap these for real API/CMS data later.
 // The Featured Work posts live in placeholder-data.ts because the homepage uses them too.
 
+import { featuredNewsPost, moreNewsPosts } from "@/lib/placeholder-data";
+
 export type NewsShow = {
   day: string;
   time: string;
@@ -18,6 +20,14 @@ export type BroadcastQuarter = {
   label: string;
   broadcasts: Broadcast[];
 };
+
+
+export type NewsPostQuarter = {
+  /** Heading shown above the posts, e.g. "THIS QUARTER" or "SPRING 2026". */
+  label: string;
+  posts: NewsPost[];
+};
+
 
 export type NewsPost = {
   label: string;
@@ -45,12 +55,14 @@ export const pastBroadcasts: Broadcast[] = [
 ];
 
 // Full archive for the Past Broadcasts page, newest quarter first.
-// Placeholder: every quarter repeats the same three broadcasts, three times.
-const placeholderQuarter: Broadcast[] = [...pastBroadcasts, ...pastBroadcasts, ...pastBroadcasts];
+// Placeholder: every quarter repeats the same three broadcasts, four times (an even 12, so the
+// two-column desktop grid has no gap at the end).
+const placeholderQuarter: Broadcast[] = Array.from({ length: 4 }, () => pastBroadcasts).flat();
 
 export const broadcastArchive: BroadcastQuarter[] = [
   { label: "THIS QUARTER", broadcasts: placeholderQuarter },
   { label: "SPRING 2026", broadcasts: placeholderQuarter },
+  { label: "WINTER 2026", broadcasts: placeholderQuarter },
 ];
 
 export const ucsdNewsPosts: NewsPost[] = [
@@ -84,5 +96,35 @@ export const globalNewsPosts: NewsPost[] = [
     author: "Tanvi Gupta",
     date: "05.11.26",
     href: "/news/supreme-court-pauses-abortion-restrictions",
+  },
+];
+
+
+// Featured Intern Projects page, newest quarter first.
+// This quarter reuses the Featured Work posts from the News page, plus one without a photo yet.
+export const featuredProjectQuarters: NewsPostQuarter[] = [
+  {
+    label: "THIS QUARTER",
+    posts: [
+      { label: "FEATURED", ...featuredNewsPost },
+      ...moreNewsPosts,
+      {
+        label: "FEATURED",
+        title: "Interview with Campus Activist",
+        author: "Kenny Trang",
+        date: "08.29.26",
+        href: "#",
+      },
+    ],
+  },
+  {
+    label: "SPRING 2026",
+    posts: ["UCSD", "GLOBAL", "POP CULTURE", "OPINION"].map((label) => ({
+      label,
+      title: "Headline here",
+      author: "Author",
+      date: "XX.XX.XX",
+      href: "#",
+    })),
   },
 ];
