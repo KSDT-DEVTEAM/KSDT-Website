@@ -175,8 +175,7 @@ export default function Page() {
               <NewsCard key={post.href} post={post} />
             ))}
           </div>
-          {/* TODO: link to the Featured Work page once it exists. */}
-          <SeeMore href="#" />
+                <SeeMore href="/news/featured-work" />
         </section>
 
         <NewsGrid title="UC San Diego News" posts={ucsdNewsPosts} />
