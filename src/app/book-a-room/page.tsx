@@ -19,7 +19,9 @@ export default function Page() {
       <div className="px-4 pt-6 pb-16 font-light lg:mx-auto lg:max-w-[1152px] lg:px-8 lg:pt-[68px] lg:pb-24 lg:text-lg">
         <p>KSDT offers the following services to UC San Diego students, free of charge:</p>
 
-        <ul className="mt-6">
+                  {/* Pink bullets for the services; the audio-intern link is a white sub-bullet under the
+            studio equipment item, since that one is for audio interns only. */}
+        <ul className="mt-6 list-disc pl-5 marker:text-ksdt-pink">
           <li>
             <span className="text-ksdt-pink">Practice room,</span> with amps and drum kits
           </li>
@@ -28,11 +30,10 @@ export default function Page() {
           </li>
           <li>
             <span className="text-ksdt-pink">Studio equipment and mics</span> (audio interns only)
+            <ul className="list-disc pl-5 marker:text-white">
+            </ul>
           </li>
         </ul>
-        <a href={audioInternApplicationHref} className="underline">
-          Apply to be an audio intern here!
-        </a>
 
         <p className="mt-6">See our calendar below to find available times.</p>
 
