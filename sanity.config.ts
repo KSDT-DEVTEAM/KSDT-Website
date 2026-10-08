@@ -29,7 +29,7 @@ export default defineConfig({
         id: `post-${value}`,
         title,
         schemaType: 'post',
-        value: () => ({category: value, publishedAt: new Date().toISOString()}),
+        value: () => ({category: value, date: new Date().toISOString()}),
       })),
     ],
   },

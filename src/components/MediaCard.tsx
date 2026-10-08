@@ -1,5 +1,14 @@
-import Image from "next/image";
+import NextImage from "next/image";
 import Link from "next/link";
+import { SanityImage } from "@/components/SanityImage";
+
+// Photos from Sanity are resized by Sanity's image CDN; local ones by next/image.
+const Image = (props: React.ComponentProps<typeof NextImage>) =>
+  typeof props.src === "string" && props.src.startsWith("https://cdn.sanity.io/") ? (
+    <SanityImage {...props} />
+  ) : (
+    <NextImage {...props} />
+  );
 
 type MediaCardProps = {
   href: string;

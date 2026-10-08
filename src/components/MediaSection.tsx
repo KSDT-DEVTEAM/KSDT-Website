@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { SanityImage } from "@/components/SanityImage";
 import Link from "next/link";
 import type { PostCard } from "@/sanity/lib/posts";
 
@@ -24,7 +24,7 @@ function FeaturedCard({ post }: { post: PostCard }) {
     >
       <div className="relative aspect-[350/192] w-full bg-zinc-300">
         {post.imageSrc && (
-          <Image
+          <SanityImage
             src={post.imageSrc}
             alt=""
             fill
@@ -53,7 +53,7 @@ function PostRowCard({ post }: { post: PostCard }) {
     >
       <div className="relative aspect-[160/112] w-full shrink-0 bg-zinc-300 lg:aspect-auto lg:h-[148px] lg:w-[211px] lg:self-center">
         {post.imageSrc && (
-          <Image
+          <SanityImage
             src={post.imageSrc}
             alt=""
             fill

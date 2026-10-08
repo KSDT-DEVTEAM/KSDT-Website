@@ -1,11 +1,16 @@
 // Media post queries for the Media page, the homepage and the post pages.
 // Each query returns posts already shaped for the post cards, so components never touch raw Sanity data.
+//
+// Field names follow the existing "KSDT Blog" schema in the production dataset:
+// `content` (body), `coverImage`, `date`, and `author` (a reference to a `person`).
 
 import { cache } from "react";
 import { connection } from "next/server";
 import { defineQuery, type PortableTextBlock } from "next-sanity";
+import type { SanityImageSource } from "@sanity/image-url";
 import { postCategories, type PostCategory } from "../categories";
 import { client } from "./client";
+import { urlFor } from "./image";
 
 export type PostCard = {
   _id: string;
@@ -20,45 +25,85 @@ export type PostCard = {
   href: string;
 };
 
+/** A Sanity image with its asset expanded, ready for urlFor(). */
+export type ContentImage = SanityImageSource & {
+  alt?: string;
+  caption?: string;
+  asset: { _id: string; metadata?: { dimensions?: { width: number; height: number } } };
+};
+
+export type ImageBlock = {
+  _type: "imageBlock";
+  _key: string;
+  image: ContentImage;
+  alt?: string;
+  caption?: string;
+  size?: "small" | "medium" | "large" | "full";
+  alignment?: "left" | "center" | "right";
+};
+
+export type GalleryBlock = {
+  _type: "galleryBlock";
+  _key: string;
+  images: (ContentImage & { _key: string })[];
+  layout?: "grid" | "carousel" | "masonry";
+  columns?: 2 | 3 | 4;
+};
+
+export type PostContent = (PortableTextBlock | ImageBlock | GalleryBlock)[];
+
 export type PostDetail = PostCard & {
+  /** e.g. "June 24, 2026" */
+  longDate: string;
+  authorImageSrc?: string;
+  excerpt?: string;
   imageAlt?: string;
-  body?: PortableTextBlock[];
+  content: PostContent;
 };
 
 // Fields every card needs.
 const cardFields = /* groq */ `
   _id,
   title,
-  publishedAt,
+  date,
   category,
-  "imageSrc": mainImage.asset->url,
-  "author": array::join(authors[]->name, ", "),
+  coverImage,
+  "author": author->{firstName, lastName},
   "href": "/media/" + slug.current
 `;
 
-const isListed = /* groq */ `_type == "post" && defined(slug.current) && defined(publishedAt)`;
+const isListed = /* groq */ `_type == "post" && defined(slug.current) && defined(date)`;
 
 const LATEST_POSTS_QUERY = defineQuery(`
-  *[${isListed}] | order(publishedAt desc) [0...$limit] { ${cardFields} }
+  *[${isListed}] | order(date desc) [0...$limit] { ${cardFields} }
 `);
 
 const CATEGORY_POSTS_QUERY = defineQuery(`
-  *[${isListed} && category == $category] | order(publishedAt desc) [0...$limit] { ${cardFields} }
+  *[${isListed} && category == $category] | order(date desc) [0...$limit] { ${cardFields} }
 `);
 
+// Images inside the content need their asset's size for layout, so expand the asset references.
 const POST_QUERY = defineQuery(`
   *[_type == "post" && slug.current == $slug][0] {
     ${cardFields},
-    "imageAlt": mainImage.alt,
-    body[] { ..., _type == "image" => { ..., "url": asset->url } }
+    "authorPicture": author->picture,
+    excerpt,
+    content[] {
+      ...,
+      _type == "imageBlock" => { image { ..., asset->{ _id, metadata { dimensions } } } },
+      _type == "galleryBlock" => { images[] { ..., asset->{ _id, metadata { dimensions } } } }
+    }
   }
 `);
 
-type RawCard = Omit<PostCard, "date" | "imageSrc" | "author" | "label"> & {
-  publishedAt: string;
+type RawCard = {
+  _id: string;
+  title: string;
+  href: string;
+  date: string;
   category: string | null;
-  imageSrc: string | null;
-  author: string | null;
+  coverImage: (SanityImageSource & { alt?: string }) | null;
+  author: { firstName?: string; lastName?: string } | null;
 };
 
 // Always fetch at request time so published changes show up right away.
@@ -68,13 +113,20 @@ async function fetchPosts<T>(query: string, params: Record<string, unknown>) {
   return client.fetch<T>(query, params);
 }
 
-function toCard({ publishedAt, category, imageSrc, author, ...post }: RawCard): PostCard {
+export function categoryLabel(category: string | null | undefined) {
+  return postCategories.find((c) => c.value === category)?.label;
+}
+
+function toCard({ _id, title, href, date, category, coverImage, author }: RawCard): PostCard {
   return {
-    ...post,
-    label: postCategories.find((c) => c.value === category)?.label ?? "",
-    imageSrc: imageSrc ?? undefined,
-    author: author ?? "",
-    date: formatDate(publishedAt),
+    _id,
+    title: title.trim(),
+    href,
+    label: categoryLabel(category) ?? "MEDIA",
+    // urlFor applies the editor's crop; the next/image loader adds the size.
+    imageSrc: coverImage ? urlFor(coverImage).url() : undefined,
+    author: [author?.firstName, author?.lastName].filter(Boolean).join(" "),
+    date: formatDate(date),
   };
 }
 
@@ -92,18 +144,36 @@ export async function getCategoryPosts(category: PostCategory, limit = 2) {
 
 // Wrapped in cache() so generateMetadata and the page share one request.
 export const getPost = cache(async (slug: string): Promise<PostDetail | null> => {
-  const post = await fetchPosts<(RawCard & Pick<PostDetail, "imageAlt" | "body">) | null>(
-    POST_QUERY,
-    { slug },
+  const post = await fetchPosts<
+    | (RawCard & {
+        authorPicture: SanityImageSource | null;
+        excerpt?: string | null;
+        content: PostContent | null;
+      })
+    | null
+  >(POST_QUERY, { slug });
+  return (
+    post && {
+      ...toCard(post),
+      longDate: formatDate(post.date, "long"),
+      authorImageSrc: post.authorPicture ? urlFor(post.authorPicture).url() : undefined,
+      excerpt: post.excerpt ?? undefined,
+      imageAlt: post.coverImage?.alt,
+      content: post.content ?? [],
+    }
   );
-  return post && { ...toCard(post), imageAlt: post.imageAlt ?? undefined, body: post.body };
 });
 
 // Dates are shown in San Diego time, so a post published late in the evening doesn't
 // show the next day's date when the server runs in UTC.
-function formatDate(iso: string) {
+const TIME_ZONE = "America/Los_Angeles";
+
+function formatDate(iso: string, style: "short" | "long" = "short") {
+  if (style === "long") {
+    return new Intl.DateTimeFormat("en-US", { timeZone: TIME_ZONE, dateStyle: "long" }).format(new Date(iso));
+  }
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Los_Angeles",
+    timeZone: TIME_ZONE,
     month: "2-digit",
     day: "2-digit",
     year: "2-digit",
