@@ -1,9 +1,19 @@
-import Image from "next/image";
+import NextImage from "next/image";
 import Link from "next/link";
+import { SanityImage } from "@/components/SanityImage";
+
+// Photos from Sanity are resized by Sanity's image CDN; local ones by next/image.
+const Image = (props: React.ComponentProps<typeof NextImage>) =>
+  typeof props.src === "string" && props.src.startsWith("https://cdn.sanity.io/") ? (
+    <SanityImage {...props} />
+  ) : (
+    <NextImage {...props} />
+  );
 
 type MediaCardProps = {
   href: string;
-  imageSrc: string;
+  /** Leave out to show a grey placeholder. */
+  imageSrc?: string;
   label: string;
   title: string;
   byline: string;
@@ -16,14 +26,16 @@ export function MediaCard({ href, imageSrc, label, title, byline, date }: MediaC
       href={href}
       className="block border border-white transition-opacity hover:opacity-90 lg:flex lg:h-full lg:flex-col lg:border-2 lg:px-[10px] lg:py-4"
     >
-      <div className="relative aspect-[350/192] w-full">
-        <Image
-          src={imageSrc}
-          alt=""
-          fill
-          className="object-cover"
-          sizes="(min-width: 1024px) 350px, (min-width: 448px) 402px, 100vw"
-        />
+      <div className="relative aspect-[350/192] w-full bg-zinc-300">
+        {imageSrc && (
+          <Image
+            src={imageSrc}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 350px, (min-width: 448px) 402px, 100vw"
+          />
+        )}
       </div>
       <div className="px-3 py-4 lg:flex lg:flex-1 lg:flex-col lg:px-0 lg:pb-0 lg:pt-2">
         <p className="font-mono text-sm text-ksdt-pink lg:text-lg/[normal]">{label}</p>
@@ -46,8 +58,8 @@ export function MediaListCard({ href, imageSrc, label, title, byline, date }: Me
       href={href}
       className="flex flex-1 gap-5 border-2 border-white py-4 pl-[10px] pr-5 transition-opacity hover:opacity-90"
     >
-      <div className="relative h-[148px] w-[211px] shrink-0 self-center">
-        <Image src={imageSrc} alt="" fill className="object-cover" sizes="211px" />
+      <div className="relative h-[148px] w-[211px] shrink-0 self-center bg-zinc-300">
+        {imageSrc && <Image src={imageSrc} alt="" fill className="object-cover" sizes="211px" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <p className="font-mono text-lg/[normal] text-ksdt-pink">{label}</p>

@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { featuredBlogPost, moreBlogPosts } from "@/lib/placeholder-data";
+import { getFeaturedPosts } from "@/sanity/lib/posts";
 import { MediaCard, MediaListCard } from "@/components/MediaCard";
 
-export function BlogSection() {
+export async function BlogSection() {
+  const [featuredBlogPost, ...moreBlogPosts] = await getFeaturedPosts();
+  if (!featuredBlogPost) return null;
+
   return (
     <section className="mt-10 border-t border-white px-4 pt-6 lg:mx-8 lg:mt-12 lg:border-t-2 lg:px-0 lg:pt-12">
       <h2 className="text-2xl font-bold lg:text-4xl/[normal]">Media</h2>
@@ -19,7 +22,7 @@ export function BlogSection() {
         <div className="hidden lg:flex lg:flex-col lg:gap-4">
           {moreBlogPosts.map((post) => (
             <MediaListCard
-              key={post.title}
+              key={post._id}
               href={post.href}
               imageSrc={post.imageSrc}
               label={post.label}

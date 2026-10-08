@@ -1,61 +1,142 @@
+import { SanityImage } from "@/components/SanityImage";
 import Link from "next/link";
-import { MediaCard } from "@/components/MediaCard";
+import type { PostCard } from "@/sanity/lib/posts";
 
-export type MediaPost = {
-  href: string;
-  imageSrc: string;
-  title: string;
-  author: string;
-  date: string;
-  label: string;
-};
+// Cards and sections for the Media page, sized from the Figma "Media" (mobile) and
+// "Media Home" (desktop) frames.
 
-type MediaSectionProps = {
-  posts: MediaPost[];
-  sectionTitle: string;
-  path: string;
-};
+function SeeMore({ href, className = "" }: { href: string; className?: string }) {
+  return (
+    <div className={`text-right ${className}`}>
+      <Link href={href} className="text-lg lg:text-2xl">
+        See More {">>"}
+      </Link>
+    </div>
+  );
+}
 
-const MAX_LIST_POSTS = 2;
+// Big card: photo on top, text below. The newest post at the top of the page.
+function FeaturedCard({ post }: { post: PostCard }) {
+  return (
+    <Link
+      href={post.href}
+      className="flex flex-col border border-white px-[9px] pt-[15px] pb-[15px] transition-opacity hover:opacity-90 lg:h-full lg:border-2 lg:px-2 lg:pt-[18px] lg:pb-3"
+    >
+      <div className="relative aspect-[350/192] w-full bg-zinc-300">
+        {post.imageSrc && (
+          <SanityImage
+            src={post.imageSrc}
+            alt=""
+            fill
+            priority
+            className="object-cover"
+            sizes="(min-width: 1024px) 350px, (min-width: 448px) 350px, calc(100vw - 52px)"
+          />
+        )}
+      </div>
+      <p className="mt-2 font-mono text-ksdt-pink lg:mt-1 lg:text-lg/[normal]">{post.label}</p>
+      <p className="mt-2 text-2xl/[normal] font-light lg:mt-1.5 lg:text-lg/[normal]">{post.title}</p>
+      <div className="mt-2.5 flex items-center justify-between gap-2 font-mono lg:mt-auto lg:pt-4">
+        <span>{post.author}</span>
+        <span className="shrink-0">{post.date}</span>
+      </div>
+    </Link>
+  );
+}
 
-export function MediaSection({ posts, sectionTitle, path }: MediaSectionProps) {
-  if (posts.length === 0) return null;
+// Small card, wide with the photo on the left on desktop. On mobile it's stacked in a two-column grid
+// (Media page) or, with `mobileRow`, wide like on desktop (the "See More" pages).
+export function PostRowCard({ post, mobileRow = false }: { post: PostCard; mobileRow?: boolean }) {
+  return (
+    <Link
+      href={post.href}
+      className={`flex border border-white px-[9px] py-[15px] transition-opacity hover:opacity-90 lg:flex-row lg:gap-2.5 lg:border-2 lg:px-[18px] lg:py-3.5 ${
+        mobileRow ? "flex-row gap-2.5" : "flex-col"
+      }`}
+    >
+      <div
+        className={`relative shrink-0 bg-zinc-300 lg:aspect-auto lg:h-[148px] lg:w-[211px] lg:self-center ${
+          mobileRow ? "h-[112px] w-[160px]" : "aspect-[160/112] w-full"
+        }`}
+      >
+        {post.imageSrc && (
+          <SanityImage
+            src={post.imageSrc}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 211px, (min-width: 448px) 160px, 40vw"
+          />
+        )}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <p className={`font-mono text-ksdt-pink lg:mt-0 lg:text-lg/[normal] ${mobileRow ? "" : "mt-2.5"}`}>
+          {post.label}
+        </p>
+        <p
+          className={`leading-none font-light lg:mt-2 lg:mb-3 lg:line-clamp-3 lg:text-lg/none ${
+            mobileRow ? "mt-1 mb-2 line-clamp-3" : "mt-2.5 mb-4"
+          }`}
+        >
+          {post.title}
+        </p>
+        <div
+          className={`mt-auto flex justify-between gap-2 font-mono text-xs lg:items-center lg:border-t lg:border-white lg:pt-4 lg:text-lg/[normal] ${
+            mobileRow ? "items-end border-t border-white pt-2.5" : "items-end"
+          }`}
+        >
+          <span className="min-w-0">{post.author}</span>
+          <span className="shrink-0">{post.date}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
+/** The newest post as a big card, with the next two beside it on desktop (hidden on mobile). */
+export function FeaturedSection({ posts }: { posts: PostCard[] }) {
   const [featured, ...rest] = posts;
-  const visibleRest = rest.slice(0, MAX_LIST_POSTS);
+  if (!featured) return null;
 
   return (
-    <section className="px-4 pt-12 last:pb-12 lg:mx-8 lg:mt-6 lg:px-0 lg:pt-6">
-      <h2 className="text-2xl font-bold lg:text-4xl/[normal]">{sectionTitle}</h2>
+    <section className="px-4 pt-6 lg:mx-8 lg:px-0 lg:pt-[72px]">
+      <div className="lg:grid lg:grid-cols-[370px_1fr] lg:gap-4">
+        <FeaturedCard post={featured} />
+        <div className="hidden lg:flex lg:flex-col lg:gap-4">
+          {rest.map((post) => (
+            <PostRowCard key={post._id} post={post} />
+          ))}
+        </div>
+      </div>
+      <SeeMore href="/media/all" className="mt-4 mb-4 lg:mt-8 lg:mb-0" />
+    </section>
+  );
+}
 
-      <div className="mt-4 grid grid-cols-2 gap-4 lg:mt-8">
-        <MediaCard
-          href={featured.href}
-          imageSrc={featured.imageSrc}
-          label={featured.label}
-          title={featured.title}
-          byline={featured.author}
-          date={featured.date}
-        />
+/** One category's newest posts, e.g. Reviews. */
+export function MediaSection({ posts, title, href }: { posts: PostCard[]; title: string; href: string }) {
+  if (posts.length === 0) return null;
 
-        {visibleRest.map((post, i) => (
-          <MediaCard
-            key={`${post.href}-${i}`}
-            href={post.href}
-            imageSrc={post.imageSrc}
-            label={post.label}
-            title={post.title}
-            byline={post.author}
-            date={post.date}
-          />
+  return (
+    <section className="px-4 pt-8 lg:mx-8 lg:px-0 lg:pt-1">
+      <h2 className="text-2xl/[normal] font-bold lg:text-4xl/[normal]">{title}</h2>
+      <div className="mt-7 grid grid-cols-2 gap-2.5 lg:mt-12 lg:gap-4">
+        {posts.map((post) => (
+          <PostRowCard key={post._id} post={post} />
         ))}
       </div>
-
-      <div className="mt-4 text-right lg:mt-8">
-        <Link href={`/${path}`} className="text-lg lg:text-2xl">
-          See More {">>"}
-        </Link>
-      </div>
+      <SeeMore href={href} className="mt-4 mb-4 lg:mt-8 lg:mb-0" />
     </section>
+  );
+}
+
+/** Pink title bar across the full width of the screen, like the News page's. */
+export function MediaTitleBar({ title }: { title: string }) {
+  return (
+    <div className="mx-[calc(50%-50vw)] w-screen bg-[rgba(255,141,202,0.4)]">
+      <h1 className="mx-auto max-w-md px-4 py-4 text-2xl/[normal] font-bold lg:max-w-none lg:px-8 lg:text-4xl/[normal]">
+        {title}
+      </h1>
+    </div>
   );
 }
