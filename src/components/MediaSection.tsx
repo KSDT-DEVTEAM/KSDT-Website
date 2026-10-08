@@ -44,14 +44,21 @@ function FeaturedCard({ post }: { post: PostCard }) {
   );
 }
 
-// Small card: stacked in a two-column grid on mobile, wide with the photo on the left on desktop.
-function PostRowCard({ post }: { post: PostCard }) {
+// Small card, wide with the photo on the left on desktop. On mobile it's stacked in a two-column grid
+// (Media page) or, with `mobileRow`, wide like on desktop (the "See More" pages).
+export function PostRowCard({ post, mobileRow = false }: { post: PostCard; mobileRow?: boolean }) {
   return (
     <Link
       href={post.href}
-      className="flex flex-col border border-white px-[9px] pt-[15px] pb-[15px] transition-opacity hover:opacity-90 lg:flex-row lg:gap-2.5 lg:border-2 lg:px-[18px] lg:py-3.5"
+      className={`flex border border-white px-[9px] py-[15px] transition-opacity hover:opacity-90 lg:flex-row lg:gap-2.5 lg:border-2 lg:px-[18px] lg:py-3.5 ${
+        mobileRow ? "flex-row gap-2.5" : "flex-col"
+      }`}
     >
-      <div className="relative aspect-[160/112] w-full shrink-0 bg-zinc-300 lg:aspect-auto lg:h-[148px] lg:w-[211px] lg:self-center">
+      <div
+        className={`relative shrink-0 bg-zinc-300 lg:aspect-auto lg:h-[148px] lg:w-[211px] lg:self-center ${
+          mobileRow ? "h-[112px] w-[160px]" : "aspect-[160/112] w-full"
+        }`}
+      >
         {post.imageSrc && (
           <SanityImage
             src={post.imageSrc}
@@ -63,11 +70,21 @@ function PostRowCard({ post }: { post: PostCard }) {
         )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        <p className="mt-2.5 font-mono text-ksdt-pink lg:mt-0 lg:text-lg/[normal]">{post.label}</p>
-        <p className="mt-2.5 mb-4 leading-none font-light lg:mt-2 lg:mb-3 lg:line-clamp-3 lg:text-lg/none">
+        <p className={`font-mono text-ksdt-pink lg:mt-0 lg:text-lg/[normal] ${mobileRow ? "" : "mt-2.5"}`}>
+          {post.label}
+        </p>
+        <p
+          className={`leading-none font-light lg:mt-2 lg:mb-3 lg:line-clamp-3 lg:text-lg/none ${
+            mobileRow ? "mt-1 mb-2 line-clamp-3" : "mt-2.5 mb-4"
+          }`}
+        >
           {post.title}
         </p>
-        <div className="mt-auto flex items-end justify-between gap-2 font-mono text-xs lg:items-center lg:border-t lg:border-white lg:pt-4 lg:text-lg/[normal]">
+        <div
+          className={`mt-auto flex justify-between gap-2 font-mono text-xs lg:items-center lg:border-t lg:border-white lg:pt-4 lg:text-lg/[normal] ${
+            mobileRow ? "items-end border-t border-white pt-2.5" : "items-end"
+          }`}
+        >
           <span className="min-w-0">{post.author}</span>
           <span className="shrink-0">{post.date}</span>
         </div>
@@ -91,8 +108,7 @@ export function FeaturedSection({ posts }: { posts: PostCard[] }) {
           ))}
         </div>
       </div>
-      {/* TODO: link to a full list of posts once that page exists. */}
-      <SeeMore href="#" className="hidden lg:mt-8 lg:block" />
+      <SeeMore href="/media/all" className="hidden lg:mt-8 lg:block" />
     </section>
   );
 }
@@ -111,5 +127,16 @@ export function MediaSection({ posts, title, href }: { posts: PostCard[]; title:
       </div>
       <SeeMore href={href} className="mt-4 mb-4 lg:mt-8 lg:mb-0" />
     </section>
+  );
+}
+
+/** Pink title bar across the full width of the screen, like the News page's. */
+export function MediaTitleBar({ title }: { title: string }) {
+  return (
+    <div className="mx-[calc(50%-50vw)] w-screen bg-[rgba(255,141,202,0.4)]">
+      <h1 className="mx-auto max-w-md px-4 py-4 text-2xl/[normal] font-bold lg:max-w-none lg:px-8 lg:text-4xl/[normal]">
+        {title}
+      </h1>
+    </div>
   );
 }

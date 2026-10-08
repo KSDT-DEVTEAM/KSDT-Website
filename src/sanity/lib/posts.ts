@@ -83,6 +83,11 @@ const CATEGORY_POSTS_QUERY = defineQuery(`
 `);
 
 // Images inside the content need their asset's size for layout, so expand the asset references.
+// $category == "" lists every post.
+const ALL_POSTS_QUERY = defineQuery(`
+  *[${isListed} && ($category == "" || category == $category)] | order(date desc) { ${cardFields} }
+`);
+
 const POST_QUERY = defineQuery(`
   *[_type == "post" && slug.current == $slug][0] {
     ${cardFields},
@@ -142,6 +147,27 @@ export async function getCategoryPosts(category: PostCategory, limit = 2) {
   return posts.map(toCard);
 }
 
+export type PostQuarter = {
+  /** Heading above the posts, e.g. "THIS QUARTER" or "SPRING 2026". */
+  label: string;
+  posts: PostCard[];
+};
+
+/** Every post in a category (or every post), grouped by school quarter, newest first. */
+export async function getPostsByQuarter(category?: PostCategory): Promise<PostQuarter[]> {
+  const posts = await fetchPosts<RawCard[]>(ALL_POSTS_QUERY, { category: category ?? "" });
+  const current = quarterLabel(new Date().toISOString());
+  const quarters: PostQuarter[] = [];
+  for (const post of posts) {
+    const quarter = quarterLabel(post.date);
+    const label = quarter === current ? "THIS QUARTER" : quarter;
+    const last = quarters.at(-1);
+    if (last?.label === label) last.posts.push(toCard(post));
+    else quarters.push({ label, posts: [toCard(post)] });
+  }
+  return quarters;
+}
+
 // Wrapped in cache() so generateMetadata and the page share one request.
 export const getPost = cache(async (slug: string): Promise<PostDetail | null> => {
   const post = await fetchPosts<
@@ -180,4 +206,20 @@ function formatDate(iso: string, style: "short" | "long" = "short") {
   }).formatToParts(new Date(iso));
   const part = (type: string) => parts.find((p) => p.type === type)?.value;
   return `${part("month")}.${part("day")}.${part("year")}`;
+}
+
+// Approximate UCSD quarters, in San Diego time:
+// Winter Jan–Mar, Spring Apr–Jun, Summer Jul to mid-Sep, Fall mid-Sep–Dec.
+function quarterLabel(iso: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  }).formatToParts(new Date(iso));
+  const part = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  const month = part("month");
+  const isFall = month > 9 || (month === 9 && part("day") >= 15);
+  const season = isFall ? "FALL" : month <= 3 ? "WINTER" : month <= 6 ? "SPRING" : "SUMMER";
+  return `${season} ${part("year")}`;
 }
