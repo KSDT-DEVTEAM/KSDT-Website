@@ -3,7 +3,7 @@ import { getFeaturedPosts } from "@/sanity/lib/posts";
 import { MediaCard, MediaListCard } from "@/components/MediaCard";
 
 export async function BlogSection() {
-  const [featuredBlogPost, ...moreBlogPosts] = await getFeaturedPosts("media");
+  const [featuredBlogPost, ...moreBlogPosts] = await getFeaturedPosts();
   if (!featuredBlogPost) return null;
 
   return (

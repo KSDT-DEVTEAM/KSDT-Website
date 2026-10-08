@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getFeaturedPostsByQuarter, type PostCard } from "@/sanity/lib/posts";
+import { featuredProjectQuarters, type NewsPost } from "@/lib/news-data";
 
 // The site header, footer and streaming bar come from the root layout,
 // so this page only renders the Featured Intern Projects content in between.
@@ -9,7 +9,7 @@ import { getFeaturedPostsByQuarter, type PostCard } from "@/sanity/lib/posts";
 // News page, with each quarter's projects in a two-column grid.
 
 // Wide card: photo on the left (grey box until there's a photo), text on the right.
-function ProjectCard({ post }: { post: PostCard }) {
+function ProjectCard({ post }: { post: NewsPost }) {
   return (
     <Link
       href={post.href}
@@ -40,9 +40,7 @@ function ProjectCard({ post }: { post: PostCard }) {
   );
 }
 
-export default async function Page() {
-  const featuredProjectQuarters = await getFeaturedPostsByQuarter("news");
-
+export default function Page() {
   return (
     <div className="px-4 pb-16 pt-4 lg:mx-auto lg:max-w-[1152px] lg:px-8 lg:pt-12 lg:pb-24">
       <Link href="/news" className="text-lg font-light lg:text-2xl">
@@ -66,8 +64,8 @@ export default async function Page() {
         >
           <h2 className="font-mono text-lg lg:text-2xl">{quarter.label}</h2>
           <div className="mt-4 flex flex-col gap-4 lg:mt-8 lg:grid lg:grid-cols-2 lg:gap-x-4 lg:gap-y-5">
-            {quarter.posts.map((post) => (
-              <ProjectCard key={post._id} post={post} />
+            {quarter.posts.map((post, j) => (
+              <ProjectCard key={`${post.title}-${j}`} post={post} />
             ))}
           </div>
         </section>

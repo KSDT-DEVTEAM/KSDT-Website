@@ -1,6 +1,8 @@
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+import {postCategories} from '../categories'
+
 export const postType = defineType({
   name: 'post',
   title: 'Post',
@@ -15,30 +17,21 @@ export const postType = defineType({
     defineField({
       name: 'slug',
       type: 'slug',
+      description: 'The post’s URL: /media/<slug>',
       options: {
         source: 'title',
       },
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'section',
+      name: 'category',
       type: 'string',
-      description: 'Which part of the site this post appears on. Also sets its URL: /news/… or /media/…',
+      description: 'Decides which section of the Media page the post shows in.',
       options: {
-        list: [
-          {title: 'News', value: 'news'},
-          {title: 'Media', value: 'media'},
-        ],
+        list: postCategories.map(({title, value}) => ({title, value})),
         layout: 'radio',
       },
       validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: 'featured',
-      type: 'boolean',
-      description:
-        'Featured posts show at the top of the News/Media page and on the homepage. Featured news posts are also listed on Featured Intern Projects.',
-      initialValue: false,
     }),
     defineField({
       name: 'authors',
@@ -60,16 +53,9 @@ export const postType = defineType({
       ]
     }),
     defineField({
-      name: 'categories',
-      type: 'array',
-      description:
-        'The first category is the pink label on the post card. News: UCSD or Global decides which list it shows in. Media: Reviews or Interviews.',
-      of: [defineArrayMember({type: 'reference', to: {type: 'category'}})],
-    }),
-    defineField({
       name: 'publishedAt',
       type: 'datetime',
-      description: 'Shown on the post and used to sort posts and group them by quarter.',
+      description: 'Shown on the post. The 3 most recent posts are featured at the top of the Media page.',
       initialValue: () => new Date().toISOString(),
       validation: (rule) => rule.required(),
     }),
@@ -89,18 +75,12 @@ export const postType = defineType({
     select: {
       title: 'title',
       author: 'authors.0.name',
-      section: 'section',
-      featured: 'featured',
+      category: 'category',
       media: 'mainImage',
     },
-    prepare({title, author, section, featured, media}) {
-      const subtitle = [
-        section && section.toUpperCase(),
-        featured && 'Featured',
-        author && `by ${author}`,
-      ]
-        .filter(Boolean)
-        .join(' · ')
+    prepare({title, author, category, media}) {
+      const categoryTitle = postCategories.find((c) => c.value === category)?.title
+      const subtitle = [categoryTitle, author && `by ${author}`].filter(Boolean).join(' · ')
       return {title, subtitle, media}
     },
   },

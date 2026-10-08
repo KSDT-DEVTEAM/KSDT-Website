@@ -12,6 +12,7 @@ import {structureTool} from 'sanity/structure'
 import {apiVersion, dataset, projectId} from './src/sanity/env'
 import {schema} from './src/sanity/schemaTypes'
 import {structure} from './src/sanity/structure'
+import {postCategories} from './src/sanity/categories'
 
 export default defineConfig({
   basePath: '/studio',
@@ -20,15 +21,15 @@ export default defineConfig({
   // Add and edit the content schema in the './sanity/schemaTypes' folder
   schema: {
     ...schema,
-    // "New post" from the News/Media lists in the sidebar starts with the section filled in.
-    // A template's value replaces the schema's initial values, so the other defaults are repeated here.
+    // "New post" from a category list in the sidebar starts with that category filled in.
+    // A template's value replaces the schema's initial values, so the publish date default is repeated here.
     templates: (prev) => [
       ...prev,
-      ...(['news', 'media'] as const).map((section) => ({
-        id: `post-${section}`,
-        title: section === 'news' ? 'News post' : 'Media post',
+      ...postCategories.map(({value, title}) => ({
+        id: `post-${value}`,
+        title,
         schemaType: 'post',
-        value: () => ({section, featured: false, publishedAt: new Date().toISOString()}),
+        value: () => ({category: value, publishedAt: new Date().toISOString()}),
       })),
     ],
   },

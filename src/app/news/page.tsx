@@ -1,7 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { broadcastArchive, newsShows } from "@/lib/news-data";
-import { getCategoryPosts, getFeaturedPosts, type PostCard } from "@/sanity/lib/posts";
+import { featuredNewsPost, moreNewsPosts } from "@/lib/placeholder-data";
+import {
+  broadcastArchive,
+  globalNewsPosts,
+  newsShows,
+  ucsdNewsPosts,
+  type NewsPost,
+} from "@/lib/news-data";
 import { MediaCard, MediaListCard } from "@/components/MediaCard";
 import { BroadcastList } from "@/components/BroadcastList";
 
@@ -14,6 +20,7 @@ import { BroadcastList } from "@/components/BroadcastList";
 
 // Most recent broadcasts: mobile shows the first 3, desktop shows 6.
 const recentBroadcasts = broadcastArchive[0].broadcasts.slice(0, 6);
+const allNewsPosts = [...ucsdNewsPosts, ...globalNewsPosts];
 
 function SeeMore({ href }: { href: string }) {
   return (
@@ -27,7 +34,7 @@ function SeeMore({ href }: { href: string }) {
 
 // News post card: compact and stacked on mobile (two-column grids), wide with the photo
 // on the left on desktop (like MediaListCard, but keeps the grey box when there's no photo).
-function NewsCard({ post }: { post: PostCard }) {
+function NewsCard({ post }: { post: NewsPost }) {
   return (
     <Link
       href={post.href}
@@ -57,15 +64,13 @@ function NewsCard({ post }: { post: PostCard }) {
 }
 
 // Mobile only: on desktop these are merged into "All News".
-function NewsGrid({ title, posts }: { title: string; posts: PostCard[] }) {
-  if (posts.length === 0) return null;
-
+function NewsGrid({ title, posts }: { title: string; posts: NewsPost[] }) {
   return (
     <section className="px-4 pt-12 lg:hidden">
       <h2 className="text-2xl font-bold">{title}</h2>
       <div className="mt-4 grid grid-cols-2 gap-3.5">
         {posts.map((post) => (
-          <NewsCard key={post._id} post={post} />
+          <NewsCard key={post.href} post={post} />
         ))}
       </div>
       {/* TODO: link to the full list once that page exists. */}
@@ -74,14 +79,7 @@ function NewsGrid({ title, posts }: { title: string; posts: PostCard[] }) {
   );
 }
 
-export default async function Page() {
-  const [[featuredNewsPost, ...moreNewsPosts], ucsdNewsPosts, globalNewsPosts] = await Promise.all([
-    getFeaturedPosts("news"),
-    getCategoryPosts("news", "ucsd", 2),
-    getCategoryPosts("news", "global", 2),
-  ]);
-  const allNewsPosts = [...ucsdNewsPosts, ...globalNewsPosts];
-
+export default function Page() {
   return (
     <>
       {/* Pink title bar, full width like the homepage's live show banner. */}
@@ -145,59 +143,55 @@ export default async function Page() {
         <hr className="mx-4 mt-8 border-white lg:mx-0 lg:border-t-2" />
 
         {/* Featured Work */}
-        {featuredNewsPost && (
-          <section className="px-4 pt-8 lg:px-0 lg:pt-12">
-            <h2 className="text-2xl font-bold lg:text-4xl/[normal]">Featured Work</h2>
-            <div className="mt-4 lg:mt-8 lg:grid lg:grid-cols-[370px_1fr] lg:gap-4">
-              <MediaCard
-                href={featuredNewsPost.href}
-                imageSrc={featuredNewsPost.imageSrc}
-                label="FEATURED"
-                title={featuredNewsPost.title}
-                byline={featuredNewsPost.author}
-                date={featuredNewsPost.date}
-              />
-              {/* Desktop: the other two posts as wide cards beside the featured one. */}
-              <div className="hidden lg:flex lg:flex-col lg:gap-4">
-                {moreNewsPosts.map((post) => (
-                  <MediaListCard
-                    key={post._id}
-                    href={post.href}
-                    imageSrc={post.imageSrc}
-                    label={post.label}
-                    title={post.title}
-                    byline={post.author}
-                    date={post.date}
-                  />
-                ))}
-              </div>
-            </div>
-            {/* Mobile: the other two posts in a two-column grid under the featured one. */}
-            <div className="mt-3.5 grid grid-cols-2 gap-3.5 lg:hidden">
+        <section className="px-4 pt-8 lg:px-0 lg:pt-12">
+          <h2 className="text-2xl font-bold lg:text-4xl/[normal]">Featured Work</h2>
+          <div className="mt-4 lg:mt-8 lg:grid lg:grid-cols-[370px_1fr] lg:gap-4">
+            <MediaCard
+              href={featuredNewsPost.href}
+              imageSrc={featuredNewsPost.imageSrc}
+              label="FEATURED"
+              title={featuredNewsPost.title}
+              byline={featuredNewsPost.author}
+              date={featuredNewsPost.date}
+            />
+            {/* Desktop: the other two posts as wide cards beside the featured one. */}
+            <div className="hidden lg:flex lg:flex-col lg:gap-4">
               {moreNewsPosts.map((post) => (
-                <NewsCard key={post._id} post={post} />
+                <MediaListCard
+                  key={post.href}
+                  href={post.href}
+                  imageSrc={post.imageSrc}
+                  label={post.label}
+                  title={post.title}
+                  byline={post.author}
+                  date={post.date}
+                />
               ))}
             </div>
-            <SeeMore href="/news/featured-work" />
-          </section>
-        )}
+          </div>
+          {/* Mobile: the other two posts in a two-column grid under the featured one. */}
+          <div className="mt-3.5 grid grid-cols-2 gap-3.5 lg:hidden">
+            {moreNewsPosts.map((post) => (
+              <NewsCard key={post.href} post={post} />
+            ))}
+          </div>
+                <SeeMore href="/news/featured-work" />
+        </section>
 
         <NewsGrid title="UC San Diego News" posts={ucsdNewsPosts} />
         <NewsGrid title="Global News" posts={globalNewsPosts} />
 
         {/* Desktop only: UCSD and Global news together. */}
-        {allNewsPosts.length > 0 && (
-          <section className="hidden lg:block lg:pt-6">
-            <h2 className="text-4xl/[normal] font-bold">All News</h2>
-            <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-5">
-              {allNewsPosts.map((post) => (
-                <NewsCard key={post._id} post={post} />
-              ))}
-            </div>
-            {/* TODO: link to the full list once that page exists. */}
-            <SeeMore href="#" />
-          </section>
-        )}
+        <section className="hidden lg:block lg:pt-6">
+          <h2 className="text-4xl/[normal] font-bold">All News</h2>
+          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-5">
+            {allNewsPosts.map((post) => (
+              <NewsCard key={post.href} post={post} />
+            ))}
+          </div>
+          {/* TODO: link to the full list once that page exists. */}
+          <SeeMore href="#" />
+        </section>
       </div>
     </>
   );
