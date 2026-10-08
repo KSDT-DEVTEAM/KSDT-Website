@@ -4,7 +4,7 @@
 export const internApplicationHref = "#";
 
 /** Leave as undefined to show a grey placeholder until a photo is added to public/images. */
-   export const joinHeroImageSrc: string | undefined = "/images/join-hero.jpg";
+   export const joinHeroImageSrc: string | undefined = "/images/join-hero.png";
 
 export type Department = {
   name: string;

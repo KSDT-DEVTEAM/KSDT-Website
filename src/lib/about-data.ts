@@ -1,6 +1,6 @@
 // Content for the About page. Swap these for real API/CMS data later.
 
-export const aboutHeroImageSrc = "/images/about-hero.jpg";
+export const aboutHeroImageSrc = "/images/about-hero.png";
 
 export type StaffMember = {
   role: string;
