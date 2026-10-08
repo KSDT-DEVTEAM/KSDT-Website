@@ -108,7 +108,7 @@ export function FeaturedSection({ posts }: { posts: PostCard[] }) {
           ))}
         </div>
       </div>
-      <SeeMore href="/media/all" className="hidden lg:mt-8 lg:block" />
+      <SeeMore href="/media/all" className="mt-4 mb-4 lg:mt-8 lg:mb-0" />
     </section>
   );
 }
