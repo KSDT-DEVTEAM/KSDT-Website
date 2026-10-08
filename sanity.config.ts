@@ -18,7 +18,20 @@ export default defineConfig({
   projectId,
   dataset,
   // Add and edit the content schema in the './sanity/schemaTypes' folder
-  schema,
+  schema: {
+    ...schema,
+    // "New post" from the News/Media lists in the sidebar starts with the section filled in.
+    // A template's value replaces the schema's initial values, so the other defaults are repeated here.
+    templates: (prev) => [
+      ...prev,
+      ...(['news', 'media'] as const).map((section) => ({
+        id: `post-${section}`,
+        title: section === 'news' ? 'News post' : 'Media post',
+        schemaType: 'post',
+        value: () => ({section, featured: false, publishedAt: new Date().toISOString()}),
+      })),
+    ],
+  },
   plugins: [
     structureTool({structure}),
     // Vision is for querying with GROQ from inside the Studio

@@ -10,6 +10,7 @@ export const postType = defineType({
     defineField({
       name: 'title',
       type: 'string',
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'slug',
@@ -17,11 +18,32 @@ export const postType = defineType({
       options: {
         source: 'title',
       },
+      validation: (rule) => rule.required(),
     }),
     defineField({
-      name: 'author',
-      type: 'reference',
-      to: {type: 'author'},
+      name: 'section',
+      type: 'string',
+      description: 'Which part of the site this post appears on. Also sets its URL: /news/… or /media/…',
+      options: {
+        list: [
+          {title: 'News', value: 'news'},
+          {title: 'Media', value: 'media'},
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'featured',
+      type: 'boolean',
+      description:
+        'Featured posts show at the top of the News/Media page and on the homepage. Featured news posts are also listed on Featured Intern Projects.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'authors',
+      type: 'array',
+      of: [defineArrayMember({type: 'reference', to: {type: 'author'}})],
     }),
     defineField({
       name: 'mainImage',
@@ -40,26 +62,46 @@ export const postType = defineType({
     defineField({
       name: 'categories',
       type: 'array',
+      description:
+        'The first category is the pink label on the post card. News: UCSD or Global decides which list it shows in. Media: Reviews or Interviews.',
       of: [defineArrayMember({type: 'reference', to: {type: 'category'}})],
     }),
     defineField({
       name: 'publishedAt',
       type: 'datetime',
+      description: 'Shown on the post and used to sort posts and group them by quarter.',
+      initialValue: () => new Date().toISOString(),
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: 'body',
       type: 'blockContent',
     }),
   ],
+  orderings: [
+    {
+      title: 'Published, newest first',
+      name: 'publishedAtDesc',
+      by: [{field: 'publishedAt', direction: 'desc'}],
+    },
+  ],
   preview: {
     select: {
       title: 'title',
-      author: 'author.name',
+      author: 'authors.0.name',
+      section: 'section',
+      featured: 'featured',
       media: 'mainImage',
     },
-    prepare(selection) {
-      const {author} = selection
-      return {...selection, subtitle: author && `by ${author}`}
+    prepare({title, author, section, featured, media}) {
+      const subtitle = [
+        section && section.toUpperCase(),
+        featured && 'Featured',
+        author && `by ${author}`,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+      return {title, subtitle, media}
     },
   },
 })

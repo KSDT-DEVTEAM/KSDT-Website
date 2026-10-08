@@ -1,31 +1,29 @@
 import { MediaCard, MediaListCard } from "../../components/MediaCard"
 import Link from "next/link";
-import { moreBlogPosts, placeholderInterview, featuredBlogPost, placeholderFeatured } from "@/lib/placeholder-data";
-import { MediaSection, MediaPost } from "@/components/MediaSection";
-
-type FeaturedPost = {
-  href: string;
-  imageSrc: string;
-  title: string;
-  author: string;
-  date: string;
-}
+import { MediaSection } from "@/components/MediaSection";
+import { getCategoryPosts, getFeaturedPosts, type PostCard } from "@/sanity/lib/posts";
 
 type FeaturedSectionProps = {
-  featuredPost: FeaturedPost;
-  otherPosts: MediaPost[];
+  featuredPost: PostCard;
+  otherPosts: PostCard[];
 }
 
-export default function MediaPage() {
+export default async function MediaPage() {
+  const [[featuredPost, ...otherFeatured], reviews, interviews] = await Promise.all([
+    getFeaturedPosts("media"),
+    getCategoryPosts("media", "reviews", 3),
+    getCategoryPosts("media", "interviews", 3),
+  ]);
+
   return (
     <>
       <div className="lg:mx-auto lg:max-w-[1152px]">
         <MediaHeader />
 
-        <FeaturedSection featuredPost={featuredBlogPost} otherPosts={placeholderFeatured}/>
-        
-        <MediaSection posts = {moreBlogPosts} sectionTitle="Reviews" path="media/reviews"/>
-        <MediaSection posts = {placeholderInterview} sectionTitle="Interviews" path="media/interviews"/>
+        {featuredPost && <FeaturedSection featuredPost={featuredPost} otherPosts={otherFeatured}/>}
+
+        <MediaSection posts = {reviews} sectionTitle="Reviews" path="media/reviews"/>
+        <MediaSection posts = {interviews} sectionTitle="Interviews" path="media/interviews"/>
       </div>
 
     </>
@@ -57,9 +55,9 @@ function FeaturedSection( {featuredPost, otherPosts} : FeaturedSectionProps ) {
                 date={featuredPost.date}
             />
             <div className="hidden lg:flex lg:flex-col lg:gap-4">
-                {otherPosts.map((post, i) => (
+                {otherPosts.map((post) => (
                     <MediaListCard
-                      key={`${post.href}-${i}`}
+                      key={post._id}
                       href={post.href}
                       imageSrc={post.imageSrc}
                       label={post.label}

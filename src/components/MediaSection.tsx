@@ -1,17 +1,9 @@
 import Link from "next/link";
 import { MediaCard } from "@/components/MediaCard";
-
-export type MediaPost = {
-  href: string;
-  imageSrc: string;
-  title: string;
-  author: string;
-  date: string;
-  label: string;
-};
+import type { PostCard } from "@/sanity/lib/posts";
 
 type MediaSectionProps = {
-  posts: MediaPost[];
+  posts: PostCard[];
   sectionTitle: string;
   path: string;
 };
@@ -38,9 +30,9 @@ export function MediaSection({ posts, sectionTitle, path }: MediaSectionProps) {
           date={featured.date}
         />
 
-        {visibleRest.map((post, i) => (
+        {visibleRest.map((post) => (
           <MediaCard
-            key={`${post.href}-${i}`}
+            key={post._id}
             href={post.href}
             imageSrc={post.imageSrc}
             label={post.label}
