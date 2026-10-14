@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { nowPlaying as placeholder } from "@/lib/placeholder-data";
-import { STREAM_URL, useNowPlaying } from "@/lib/radio";
+import { useRadioPlayer } from "@/components/RadioPlayerProvider";
+import { Slider } from "@/components/Slider";
+import { formatShowTitle, useCurrentShow } from "@/lib/use-current-show";
 
 function formatElapsed(since: Date, now: number) {
   const elapsed = Math.max(0, Math.floor((now - since.getTime()) / 1000));
@@ -18,51 +20,6 @@ function useNow() {
     return () => clearInterval(id);
   }, []);
   return now;
-}
-
-// Draws the bar; an invisible range input on top handles dragging and keyboard input.
-function Slider({
-  value,
-  onChange,
-  label,
-  className,
-  trackClassName,
-  fillClassName,
-  thumbClassName,
-}: {
-  value: number;
-  onChange?: (value: number) => void;
-  label?: string;
-  className: string;
-  trackClassName: string;
-  fillClassName: string;
-  thumbClassName: string;
-}) {
-  return (
-    <div className={`relative ${className}`}>
-      <div className={`absolute inset-0 rounded-full ${trackClassName}`} />
-      <div
-        className={`absolute left-0 top-1/2 -translate-y-1/2 rounded-full ${fillClassName}`}
-        style={{ width: `${value * 100}%` }}
-      />
-      <div
-        className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full ${thumbClassName}`}
-        style={{ left: `${value * 100}%` }}
-      />
-      {onChange && (
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.01}
-          value={value}
-          aria-label={label}
-          onChange={(event) => onChange(Number(event.target.value))}
-          className="absolute inset-x-0 top-1/2 h-6 w-full -translate-y-1/2 cursor-pointer appearance-none opacity-0"
-        />
-      )}
-    </div>
-  );
 }
 
 function PauseIcon({ className }: { className?: string }) {
@@ -81,48 +38,19 @@ const desktopSlider = {
 };
 
 export function NowPlayingCard() {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.8);
-  const nowPlaying = useNowPlaying();
+  const { isPlaying, volume, nowPlaying, togglePlay, setVolume } = useRadioPlayer();
   const now = useNow();
 
-  const trackTitle = nowPlaying?.trackTitle ?? placeholder.trackTitle;
-  const trackArtist = nowPlaying?.trackArtist ?? placeholder.trackArtist;
+  const currentShow = useCurrentShow();
+
+  // Radio.co's track info when it has some, otherwise the scheduled show.
+  const trackTitle = nowPlaying?.trackTitle ?? formatShowTitle(currentShow);
+  const trackArtist = nowPlaying?.trackArtist ?? currentShow?.slot.dj ?? "";
   const artworkSrc = nowPlaying?.artworkSrc ?? placeholder.artworkSrc;
   const elapsed = nowPlaying?.startedAt ? formatElapsed(nowPlaying.startedAt, now) : null;
 
-  useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
-  }, [volume]);
-
-  async function togglePlay() {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      // Drop the buffered stream so resuming jumps back to the live broadcast.
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      setIsPlaying(false);
-      return;
-    }
-
-    audio.src = STREAM_URL;
-    audio.volume = volume;
-    setIsPlaying(true);
-    try {
-      await audio.play();
-    } catch {
-      setIsPlaying(false);
-    }
-  }
-
   return (
     <section className="px-4 pt-6 lg:mx-8 lg:flex lg:px-0 lg:pt-[72px]">
-      <audio ref={audioRef} preload="none" onPause={() => setIsPlaying(false)} />
-
       <button
         type="button"
         aria-label={isPlaying ? "Pause live stream" : "Play live stream"}

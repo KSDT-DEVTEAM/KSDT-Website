@@ -2,7 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { weeklySchedule, formatSlotHour } from "@/lib/schedule-data";
+import {
+  formatSlotHour,
+  getLocalWeeklySchedule,
+  slotMinutes,
+  type DaySchedule,
+} from "@/lib/schedule-data";
+
+const minutesIntoDay = (date: Date) => date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60;
+
+// True once the day's last show has ended.
+function isPastLastSlot(day: DaySchedule, date: Date) {
+  const last = day.slots.at(-1);
+  return !last || minutesIntoDay(date) >= slotMinutes(last.start) + 60;
+}
 
 type ScheduleModalProps = {
   open: boolean;
@@ -39,20 +52,21 @@ export function ScheduleModal({ open, onClose }: ScheduleModalProps) {
     return () => clearInterval(interval);
   }, [open]);
 
-  // On open, jump to today's schedule — or, if it's outside the 9am-10pm
-  // broadcast window, to tomorrow's, so the indicator has a day to land on.
+  // On open, jump to today's schedule — or, once today's last show has ended,
+  // to tomorrow's, so the indicator has a day to land on.
   useEffect(() => {
     if (!open) return;
     const current = new Date();
-    const hour = current.getHours();
-    const inBroadcastWindow = hour >= 9 && hour < 23;
-    setDayIndex(inBroadcastWindow ? current.getDay() : (current.getDay() + 1) % 7);
+    const today = getLocalWeeklySchedule(current)[current.getDay()];
+    setDayIndex(isPastLastSlot(today, current) ? (current.getDay() + 1) % 7 : current.getDay());
   }, [open]);
 
-  if (!open) return null;
+  // Shown in the visitor's own time zone; `now` is set as soon as the pop-up opens.
+  if (!open || !now) return null;
+  const schedule = getLocalWeeklySchedule(now);
 
-  const dayCount = weeklySchedule.length;
-  const activeDay = weeklySchedule[dayIndex];
+  const dayCount = schedule.length;
+  const activeDay = schedule[dayIndex];
   const showPrevDay = () => setDayIndex((i) => (i - 1 + dayCount) % dayCount);
   const showNextDay = () => setDayIndex((i) => (i + 1) % dayCount);
 
@@ -60,18 +74,22 @@ export function ScheduleModal({ open, onClose }: ScheduleModalProps) {
   // through that hour's block it sits (0 = top of the hour, 1 = bottom).
   let indicatorIndex = -1;
   let indicatorFraction = 0;
-  if (now) {
-    const hour = now.getHours();
-    const inBroadcastWindow = hour >= 9 && hour < 23;
-    const indicatorDay = inBroadcastWindow ? now.getDay() : (now.getDay() + 1) % 7;
-    if (indicatorDay === dayIndex) {
-      if (inBroadcastWindow) {
-        indicatorIndex = activeDay.slots.findIndex((slot) => Number(slot.start.split(":")[0]) === hour);
-        indicatorFraction = (now.getMinutes() * 60 + now.getSeconds()) / 3600;
-      } else {
-        indicatorIndex = 0;
-        indicatorFraction = 0;
-      }
+  const pastToday = isPastLastSlot(schedule[now.getDay()], now);
+  const indicatorDay = pastToday ? (now.getDay() + 1) % 7 : now.getDay();
+  if (indicatorDay === dayIndex) {
+    const current = minutesIntoDay(now);
+    const onAir = pastToday
+      ? -1
+      : activeDay.slots.findIndex(
+          (slot) => current >= slotMinutes(slot.start) && current < slotMinutes(slot.start) + 60,
+        );
+    if (onAir !== -1) {
+      indicatorIndex = onAir;
+      indicatorFraction = (current - slotMinutes(activeDay.slots[onAir].start)) / 60;
+    } else {
+      // Between shows (or before tomorrow's first): sit at the top of the next show.
+      indicatorIndex = pastToday ? 0 : activeDay.slots.findIndex((slot) => slotMinutes(slot.start) > current);
+      indicatorFraction = 0;
     }
   }
 
@@ -123,12 +141,13 @@ export function ScheduleModal({ open, onClose }: ScheduleModalProps) {
             {activeDay.slots.map((slot, index) => (
               <div key={`${slot.start}-${index}`} className="relative flex items-stretch border border-white">
                 {indicatorIndex === index && <NowIndicator fraction={indicatorFraction} />}
-                <div className="flex w-[30px] shrink-0 items-center justify-center border-r border-white text-ksdt-pink">
+                <div className="flex min-w-[30px] shrink-0 items-center justify-center border-r border-white px-1 text-ksdt-pink">
                   {formatSlotHour(slot.start)}
                 </div>
-                <div className="flex flex-1 flex-col justify-center px-4 py-2">
+                {/* Fixed height keeps one-line and empty slots the same size as show + DJ slots. */}
+                <div className="flex min-h-14 flex-1 flex-col justify-center px-4 py-2">
                   <span className="text-sm font-bold">{slot.show}</span>
-                  <span className="text-sm font-light">{slot.dj}</span>
+                  {slot.dj && <span className="text-sm font-light">{slot.dj}</span>}
                 </div>
               </div>
             ))}

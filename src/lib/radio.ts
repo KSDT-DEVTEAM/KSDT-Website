@@ -12,8 +12,8 @@ export type NowPlaying = {
   trackTitle: string;
   trackArtist: string;
   artworkSrc: string | null;
-  // When the current track began, used to show elapsed time. Null during a live DJ set.
-  startedAt: Date | null;
+  // When the current track began, used to show elapsed time.
+  startedAt: Date;
 };
 
 type StationStatus = {
@@ -23,22 +23,13 @@ type StationStatus = {
     artwork_url: string | null;
     artwork_url_large: string | null;
   } | null;
-  collaborators: { name: string; status: string }[];
 };
 
-// Radio.co reports the track as a single "Artist - Title" string.
-function parseStatus(status: StationStatus): NowPlaying {
+// Radio.co reports the track as a single "Artist - Title" string. Live DJ sets usually
+// carry no track metadata, in which case this is null and players show the scheduled show.
+function parseStatus(status: StationStatus): NowPlaying | null {
   const track = status.current_track;
-  if (!track) {
-    // Live broadcasts from Radio.co Studio don't carry track metadata.
-    const dj = status.collaborators.find((c) => c.status === "streaming");
-    return {
-      trackTitle: "Live on KSDT",
-      trackArtist: dj?.name ?? "KSDT Radio",
-      artworkSrc: null,
-      startedAt: null,
-    };
-  }
+  if (!track) return null;
 
   const separator = track.title.indexOf(" - ");
   return {

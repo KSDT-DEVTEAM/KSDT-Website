@@ -1,12 +1,6 @@
 // Placeholder content for the homepage. Swap these for real API/CMS data later.
 // Media posts come from Sanity: see src/sanity/lib/posts.ts.
 
-export const liveShow = {
-  title: "LIVE: Show Name",
-  hosts: "DJ Name",
-  scheduleHref: "#",
-};
-
 export const nowPlaying = {
   artworkSrc: "/images/live-show-thumbnail.png",
   trackTitle: "Shopping",
