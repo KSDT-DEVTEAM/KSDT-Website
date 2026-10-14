@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import { getShowAt } from "@/lib/schedule-data";
+import { formatSlotTime, getShowAt } from "@/lib/schedule-data";
 
 // Re-checks the clock every 30s; the snapshot only changes once a minute.
 const subscribe = (onChange: () => void) => {
@@ -19,7 +19,10 @@ export function useCurrentShow() {
   return useMemo(() => (minute === null ? null : getShowAt(new Date(minute * 60_000))), [minute]);
 }
 
-/** Banner-style title for the current show, e.g. "LIVE: TAG" or "Up Next: TAG". */
+/** Banner-style title for the current show, e.g. "LIVE: TAG" or "Up Next at 11AM: TAG". */
 export function formatShowTitle(current: ReturnType<typeof getShowAt>) {
-  return current ? `${current.live ? "LIVE" : "Up Next"}: ${current.slot.show}` : "";
+  if (!current) return "";
+  const { slot, live } = current;
+  // Slot times are already in the visitor's time zone.
+  return live ? `LIVE: ${slot.show}` : `Up Next at ${formatSlotTime(slot.start)}: ${slot.show}`;
 }

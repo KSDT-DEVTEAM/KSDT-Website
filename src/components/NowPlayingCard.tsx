@@ -2,14 +2,15 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { nowPlaying as placeholder } from "@/lib/placeholder-data";
 import { useRadioPlayer } from "@/components/RadioPlayerProvider";
 import { Slider } from "@/components/Slider";
 import { formatShowTitle, useCurrentShow } from "@/lib/use-current-show";
+import { slotMinutes } from "@/lib/schedule-data";
 
-function formatElapsed(since: Date, now: number) {
-  const elapsed = Math.max(0, Math.floor((now - since.getTime()) / 1000));
-  return `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
+const SHOW_LENGTH_SECONDS = 60 * 60;
+
+function formatClock(seconds: number) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 // Ticks once a second so elapsed time stays current.
@@ -46,8 +47,18 @@ export function NowPlayingCard() {
   // Radio.co's track info when it has some, otherwise the scheduled show.
   const trackTitle = nowPlaying?.trackTitle ?? formatShowTitle(currentShow);
   const trackArtist = nowPlaying?.trackArtist ?? currentShow?.slot.dj ?? "";
-  const artworkSrc = nowPlaying?.artworkSrc ?? placeholder.artworkSrc;
-  const elapsed = nowPlaying?.startedAt ? formatElapsed(nowPlaying.startedAt, now) : null;
+  const artworkSrc = nowPlaying?.artworkSrc;
+
+  // How far into the hour-long show we are, counted on the visitor's clock (slot times are
+  // already local). Null when nothing is on air.
+  let showElapsed: number | null = null;
+  if (currentShow?.live) {
+    const date = new Date(now);
+    const secondsIntoDay = date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
+    const start = slotMinutes(currentShow.slot.start) * 60;
+    // The show lookup refreshes every 30s, so clamp the moment a new hour starts.
+    showElapsed = Math.min(Math.max(secondsIntoDay - start, 0), SHOW_LENGTH_SECONDS);
+  }
 
   return (
     <section className="px-4 pt-6 lg:mx-8 lg:flex lg:px-0 lg:pt-[72px]">
@@ -58,15 +69,18 @@ export function NowPlayingCard() {
         onClick={togglePlay}
         className="relative block aspect-square w-full cursor-pointer overflow-hidden rounded-t-[25px] border border-white lg:w-[234px] lg:shrink-0 lg:rounded-none lg:border-2 lg:border-r-0"
       >
-        <Image
-          src={artworkSrc}
-          alt={`${trackTitle} artwork`}
-          fill
-          // Radio.co artwork comes from several hosts, so skip the optimizer for it.
-          unoptimized={artworkSrc.startsWith("http")}
-          className="object-cover"
-          sizes="(min-width: 1024px) 234px, (min-width: 448px) 402px, 100vw"
-        />
+        {/* Left blank until Radio.co sends artwork for the current track. */}
+        {artworkSrc && (
+          <Image
+            src={artworkSrc}
+            alt={`${trackTitle} artwork`}
+            fill
+            // Radio.co artwork comes from several hosts, so skip the optimizer for it.
+            unoptimized
+            className="object-cover"
+            sizes="(min-width: 1024px) 234px, (min-width: 448px) 402px, 100vw"
+          />
+        )}
         <span className="absolute left-1/2 top-1/2 h-[55px] w-[45px] -translate-x-1/2 -translate-y-1/2 lg:h-[45px] lg:w-[37px]">
           {isPlaying ? (
             <PauseIcon className="size-full drop-shadow-[0_4px_5px_rgba(0,0,0,0.5)]" />
@@ -97,7 +111,7 @@ export function NowPlayingCard() {
             fillClassName="h-full bg-white"
             thumbClassName="h-[10px] w-[10px] bg-white"
           />
-          <span className="text-base tabular-nums">{elapsed ?? "LIVE"}</span>
+          {showElapsed !== null && <span className="text-base tabular-nums">{formatClock(showElapsed)}</span>}
         </div>
       </div>
 
@@ -113,11 +127,11 @@ export function NowPlayingCard() {
           </div>
         </div>
 
-        {/* Radio.co doesn't report track length, so the bar marks the live stream instead of progress. */}
+        {/* Counts through the current hour-long show; Radio.co doesn't report track lengths. */}
         <div className="flex items-center gap-3 tabular-nums">
-          {elapsed && <span>{elapsed}</span>}
-          <Slider value={1} className="h-[5px] flex-1" {...desktopSlider} />
-          <span>LIVE</span>
+          {showElapsed !== null && <span>{formatClock(showElapsed)}</span>}
+          <Slider value={(showElapsed ?? 0) / SHOW_LENGTH_SECONDS} className="h-[5px] flex-1" {...desktopSlider} />
+          {showElapsed !== null && <span>{formatClock(SHOW_LENGTH_SECONDS)}</span>}
         </div>
       </div>
     </section>

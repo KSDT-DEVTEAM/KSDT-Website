@@ -12,14 +12,11 @@ export type NowPlaying = {
   trackTitle: string;
   trackArtist: string;
   artworkSrc: string | null;
-  // When the current track began, used to show elapsed time.
-  startedAt: Date;
 };
 
 type StationStatus = {
   current_track: {
     title: string;
-    start_time: string;
     artwork_url: string | null;
     artwork_url_large: string | null;
   } | null;
@@ -36,7 +33,6 @@ function parseStatus(status: StationStatus): NowPlaying | null {
     trackTitle: separator === -1 ? track.title : track.title.slice(separator + 3),
     trackArtist: separator === -1 ? "" : track.title.slice(0, separator),
     artworkSrc: track.artwork_url_large ?? track.artwork_url,
-    startedAt: new Date(track.start_time),
   };
 }
 
