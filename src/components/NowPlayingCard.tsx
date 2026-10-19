@@ -39,15 +39,14 @@ const desktopSlider = {
 };
 
 export function NowPlayingCard() {
-  const { isPlaying, volume, nowPlaying, togglePlay, setVolume } = useRadioPlayer();
+  const { isPlaying, volume, togglePlay, setVolume } = useRadioPlayer();
   const now = useNow();
 
   const currentShow = useCurrentShow();
 
-  // Radio.co's track info when it has some, otherwise the scheduled show.
-  const trackTitle = nowPlaying?.trackTitle ?? formatShowTitle(currentShow);
-  const trackArtist = nowPlaying?.trackArtist ?? currentShow?.slot.dj ?? "";
-  const artworkSrc = nowPlaying?.artworkSrc;
+  // Radio.co's track info lags behind during live sets, so show the scheduled show and DJ.
+  const trackTitle = formatShowTitle(currentShow);
+  const trackArtist = currentShow?.slot.dj ?? "";
 
   // How far into the hour-long show we are, counted on the visitor's clock (slot times are
   // already local). Null when nothing is on air.
@@ -69,18 +68,6 @@ export function NowPlayingCard() {
         onClick={togglePlay}
         className="relative block aspect-square w-full cursor-pointer overflow-hidden rounded-t-[25px] border border-white lg:w-[234px] lg:shrink-0 lg:rounded-none lg:border-2 lg:border-r-0"
       >
-        {/* Left blank until Radio.co sends artwork for the current track. */}
-        {artworkSrc && (
-          <Image
-            src={artworkSrc}
-            alt={`${trackTitle} artwork`}
-            fill
-            // Radio.co artwork comes from several hosts, so skip the optimizer for it.
-            unoptimized
-            className="object-cover"
-            sizes="(min-width: 1024px) 234px, (min-width: 448px) 402px, 100vw"
-          />
-        )}
         <span className="absolute left-1/2 top-1/2 h-[55px] w-[45px] -translate-x-1/2 -translate-y-1/2 lg:h-[45px] lg:w-[37px]">
           {isPlaying ? (
             <PauseIcon className="size-full drop-shadow-[0_4px_5px_rgba(0,0,0,0.5)]" />

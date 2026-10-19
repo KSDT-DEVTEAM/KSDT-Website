@@ -14,11 +14,11 @@ import { formatShowTitle, useCurrentShow } from "@/lib/use-current-show";
 export function StreamingBar() {
   const pathname = usePathname();
   const [dismissed, setDismissed] = useState(false);
-  const { isPlaying, isMuted, volume, nowPlaying, togglePlay, toggleMute, setVolume } = useRadioPlayer();
+  const { isPlaying, isMuted, volume, togglePlay, toggleMute, setVolume } = useRadioPlayer();
   const currentShow = useCurrentShow();
-  // Radio.co's track info when it has some, otherwise the scheduled show.
-  const title = nowPlaying?.trackTitle ?? formatShowTitle(currentShow);
-  const subtitle = nowPlaying?.trackArtist ?? currentShow?.slot.dj ?? "";
+  // Radio.co's track info lags behind during live sets, so show the scheduled show and DJ.
+  const title = formatShowTitle(currentShow);
+  const subtitle = currentShow?.slot.dj ?? "";
 
   if (pathname === "/" || dismissed) return null;
 
