@@ -1,13 +1,12 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { STREAM_URL, useNowPlaying, type NowPlaying } from "@/lib/radio";
+import { STREAM_URL } from "@/lib/radio";
 
 type RadioPlayer = {
   isPlaying: boolean;
   volume: number;
   isMuted: boolean;
-  nowPlaying: NowPlaying | null;
   togglePlay: () => void;
   stop: () => void;
   setVolume: (volume: number) => void;
@@ -67,7 +66,6 @@ export function RadioPlayerProvider({ children }: { children: React.ReactNode })
     getVolumeSettings,
     () => DEFAULT_VOLUME,
   );
-  const nowPlaying = useNowPlaying();
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -110,7 +108,6 @@ export function RadioPlayerProvider({ children }: { children: React.ReactNode })
         // Sliders show 0 while muted, matching what the listener hears.
         volume: isMuted ? 0 : volume,
         isMuted,
-        nowPlaying,
         togglePlay,
         stop,
         // Dragging a slider unmutes, the way most players behave.
