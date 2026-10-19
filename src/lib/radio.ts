@@ -22,7 +22,7 @@ type StationStatus = {
   } | null;
 };
 
-// Radio.co reports the track as a single "Artist - Title" string. Live DJ sets usually
+// Radio.co reports the track as a single "Title - Artist" string. Live DJ sets usually
 // carry no track metadata, in which case this is null and players show the scheduled show.
 function parseStatus(status: StationStatus): NowPlaying | null {
   const track = status.current_track;
@@ -30,8 +30,8 @@ function parseStatus(status: StationStatus): NowPlaying | null {
 
   const separator = track.title.indexOf(" - ");
   return {
-    trackTitle: separator === -1 ? track.title : track.title.slice(separator + 3),
-    trackArtist: separator === -1 ? "" : track.title.slice(0, separator),
+    trackTitle: separator === -1 ? track.title : track.title.slice(0, separator),
+    trackArtist: separator === -1 ? "" : track.title.slice(separator + 3),
     artworkSrc: track.artwork_url_large ?? track.artwork_url,
   };
 }
