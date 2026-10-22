@@ -37,7 +37,7 @@ export const staffGroups: StaffGroup[] = [
   },
   {
     heading: "Computer Engineering",
-    members: [{ role: "COMPUTER ENGINEER", name: "Emmanuel Leyva", email: "emmanuel@ksdt.org" }],
+    members: [{ role: "COMPUTER ENGINEER", name: "Emmanuel Leyva ✌️", email: "emmanuel@ksdt.org" }],
   },
   {
     heading: "Creative",
