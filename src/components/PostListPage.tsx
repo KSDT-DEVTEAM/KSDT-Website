@@ -1,20 +1,25 @@
 import Link from "next/link";
 import { PostRowCard } from "@/components/MediaSection";
-import type { mediaListings } from "@/sanity/categories";
-import { getPostsByQuarter } from "@/sanity/lib/posts";
+import type { PostQuarter } from "@/sanity/lib/posts";
 
-// A "See More" page: every post in a category (or every post), grouped by school quarter, newest first.
-// Laid out from the Figma "Media Reviews" frames.
+// A "See More" page: every post in a list (e.g. Reviews, or UCSD News), grouped by school quarter, newest first.
+// Used under /media and /news. Laid out from the Figma "Media Reviews" frames.
 
-export async function MediaListPage({ listing }: { listing: (typeof mediaListings)[number] }) {
-  const quarters = await getPostsByQuarter(listing.category);
-
+export function PostListPage({
+  title,
+  backHref,
+  quarters,
+}: {
+  title: string;
+  backHref: string;
+  quarters: PostQuarter[];
+}) {
   return (
     <div className="px-4 pt-4 pb-16 lg:mx-auto lg:max-w-[1152px] lg:px-8 lg:pt-12 lg:pb-24">
-      <Link href="/media" className="text-lg/[normal] font-light lg:text-2xl/[normal]">
+      <Link href={backHref} className="text-lg/[normal] font-light lg:text-2xl/[normal]">
         {"<<"} Back
       </Link>
-      <h1 className="mt-3 text-2xl/[normal] font-bold lg:mt-4 lg:text-4xl/[normal]">{listing.title}</h1>
+      <h1 className="mt-3 text-2xl/[normal] font-bold lg:mt-4 lg:text-4xl/[normal]">{title}</h1>
 
       {quarters.map((quarter, i) => (
         <section key={quarter.label}>

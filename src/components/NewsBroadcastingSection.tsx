@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { featuredNewsPost, moreNewsPosts } from "@/lib/placeholder-data";
+import { getNewsPosts } from "@/sanity/lib/posts";
 import { MediaCard, MediaListCard } from "@/components/MediaCard";
 
-export function NewsBroadcastingSection() {
+// The homepage's News section: the newest featured intern projects from Sanity, like the News page's Featured Work.
+export async function NewsBroadcastingSection() {
+  const [featuredNewsPost, ...moreNewsPosts] = await getNewsPosts({ featured: true }, 3);
+  if (!featuredNewsPost) return null;
+
   return (
     <section className="mt-10 border-t border-white px-4 pb-16 pt-6 lg:mx-8 lg:mt-9 lg:border-t-0 lg:px-0 lg:pb-24 lg:pt-0">
       <h2 className="text-2xl font-bold lg:text-4xl/[normal]">News</h2>
@@ -11,7 +15,7 @@ export function NewsBroadcastingSection() {
         <MediaCard
           href={featuredNewsPost.href}
           imageSrc={featuredNewsPost.imageSrc}
-          label="FEATURED"
+          label={featuredNewsPost.label}
           title={featuredNewsPost.title}
           byline={featuredNewsPost.author}
           date={featuredNewsPost.date}
@@ -19,7 +23,7 @@ export function NewsBroadcastingSection() {
         <div className="hidden lg:flex lg:flex-col lg:gap-4">
           {moreNewsPosts.map((post) => (
             <MediaListCard
-              key={post.title}
+              key={post._id}
               href={post.href}
               imageSrc={post.imageSrc}
               label={post.label}
