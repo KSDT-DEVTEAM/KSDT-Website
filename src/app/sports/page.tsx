@@ -1,11 +1,16 @@
 import Image from "next/image";
-import { sportsStreams, upcomingGames } from "@/lib/sports-data";
+import { noGame, sportsStreams } from "@/lib/sports-data";
+import { getUpcomingGames } from "@/lib/sports-calendar";
 import { Broadcasters, SportsStreamCard } from "@/components/SportsStreamCard";
 
 // The site header, footer and streaming bar come from the root layout,
 // so this page only renders the Sports content in between.
 
-export default function Page() {
+export default async function Page() {
+  const upcomingGames = await getUpcomingGames();
+  const [nextGame = noGame] = upcomingGames;
+  const streams = sportsStreams.map((stream, i) => ({ ...stream, ...(i === 0 ? nextGame : noGame) }));
+
   return (
     // Sports uses SF Pro Black in the design; fall back to the system UI font elsewhere.
     //
@@ -28,7 +33,7 @@ export default function Page() {
       </div>
 
       <div className="mt-[calc(56*var(--u))] flex w-full flex-col gap-[calc(30*var(--u))] lg:mt-[82px] lg:grid lg:grid-cols-2 lg:gap-x-[84px] lg:gap-y-[74px]">
-        {sportsStreams.map((stream) => (
+        {streams.map((stream) => (
           <SportsStreamCard key={stream.name} stream={stream} />
         ))}
 
@@ -50,19 +55,37 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="ml-auto flex shrink-0 flex-col items-end pt-[calc(3*var(--u))] lg:-mt-1 lg:ml-6 lg:pt-0">
-                  <Broadcasters names={game.broadcasters} />
+                  {game.broadcasters.length > 0 && <Broadcasters names={game.broadcasters} />}
                   <p className="text-[length:calc(10*var(--u))] text-[#c3c3c3] lg:hidden">{game.date}</p>
                 </div>
               </li>
             ))}
           </ol>
+          {upcomingGames.length === 0 && (
+            <p className="mt-[calc(10*var(--u))] pl-[calc(4*var(--u))] text-[length:calc(10*var(--u))] text-[#c3c3c3] lg:mt-[26px] lg:pl-0 lg:text-[24px]/[normal]">
+              No upcoming games scheduled.
+            </p>
+          )}
         </section>
       </div>
 
-      <h2 className="mt-[calc(28*var(--u))] mb-[calc(96*var(--u))] text-center text-[length:calc(25*var(--u))] lg:mt-[94px] lg:mb-24 lg:self-start lg:text-left lg:text-[64px]/[normal]">
+      <h2 className="mt-[calc(28*var(--u))] text-center text-[length:calc(25*var(--u))] lg:mt-[94px] lg:self-start lg:text-left lg:text-[64px]/[normal]">
         About KSDT Sports
       </h2>
-      {/* TODO: About copy isn't in the design yet. */}
+      <div className="mt-[calc(16*var(--u))] mb-[calc(96*var(--u))] w-full space-y-[calc(12*var(--u))] text-[length:calc(12*var(--u))] leading-relaxed font-light tracking-normal lg:mt-8 lg:mb-24 lg:space-y-7 lg:text-lg">
+        <p>
+          KSDT Sports is a student-run sports media outlet at UC San Diego. We broadcast all Division I
+          home games for the major sports on campus and provide students with hands-on exposure to live
+          media production at the university level.
+        </p>
+        <p>
+          Our organization is built around two departments. The Broadcasting Department brings games to
+          listeners and viewers, giving members the chance to develop skills in play-by-play commentary,
+          color analysis, and live production. The Marketing Department promotes our broadcasts and works
+          to build sports culture on campus, driving student engagement through social media, content
+          creation, and events that connect the student body with Triton athletics.
+        </p>
+      </div>
     </div>
   );
 }

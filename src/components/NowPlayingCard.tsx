@@ -39,7 +39,12 @@ const desktopSlider = {
 };
 
 export function NowPlayingCard() {
-  const { isPlaying, volume, togglePlay, setVolume } = useRadioPlayer();
+  const player = useRadioPlayer();
+  const { volume, setVolume } = player;
+  // This card is the station player: it only shows as playing for the station, and pressing play
+  // switches back to the station if a KSDT Sports game is on.
+  const isPlaying = player.isPlaying && !player.stream;
+  const togglePlay = () => player.toggleStream(null);
   const now = useNow();
 
   const currentShow = useCurrentShow();

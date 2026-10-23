@@ -3,11 +3,23 @@
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { STREAM_URL } from "@/lib/radio";
 
+/** A stream other than the station, e.g. a KSDT Sports game, with what the player bar shows for it. */
+export type ExternalStream = {
+  url: string;
+  title: string;
+  subtitle: string;
+};
+
 type RadioPlayer = {
+  /** What the player is set to: a sports stream, or null for the station. Stays set while paused. */
+  stream: ExternalStream | null;
   isPlaying: boolean;
   volume: number;
   isMuted: boolean;
+  /** Plays or pauses whatever the player is set to. */
   togglePlay: () => void;
+  /** Plays `stream` (null for the station), or pauses it if it's already the one playing. */
+  toggleStream: (stream: ExternalStream | null) => void;
   stop: () => void;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
@@ -56,10 +68,12 @@ function subscribeToVolume(listener: () => void) {
   return () => volumeListeners.delete(listener);
 }
 
-// Owns the single <audio> element for the live stream. It lives in the root layout,
-// which stays mounted across client-side navigation, so playback continues between pages.
+// Owns the single <audio> element for the station stream and the KSDT Sports streams, so only
+// one plays at a time. It lives in the root layout, which stays mounted across client-side
+// navigation, so playback continues between pages.
 export function RadioPlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [stream, setStream] = useState<ExternalStream | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const { volume, isMuted } = useSyncExternalStore(
     subscribeToVolume,
@@ -83,32 +97,42 @@ export function RadioPlayerProvider({ children }: { children: React.ReactNode })
     setIsPlaying(false);
   }
 
-  async function play() {
+  async function play(next: ExternalStream | null) {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.src = STREAM_URL;
+    const url = next?.url ?? STREAM_URL;
+    setStream(next);
+    audio.src = url;
     audio.volume = volume;
     setIsPlaying(true);
     try {
       await audio.play();
     } catch {
-      setIsPlaying(false);
+      // Ignore failures from a stream that's already been switched away from.
+      if (audio.src === url) setIsPlaying(false);
     }
   }
 
   function togglePlay() {
     if (isPlaying) stop();
-    else play();
+    else play(stream);
+  }
+
+  function toggleStream(next: ExternalStream | null) {
+    if (isPlaying && stream?.url === next?.url) stop();
+    else play(next);
   }
 
   return (
     <RadioPlayerContext.Provider
       value={{
+        stream,
         isPlaying,
         // Sliders show 0 while muted, matching what the listener hears.
         volume: isMuted ? 0 : volume,
         isMuted,
         togglePlay,
+        toggleStream,
         stop,
         // Dragging a slider unmutes, the way most players behave.
         setVolume: (next) => saveVolumeSettings({ volume: next, isMuted: false }),
@@ -116,7 +140,14 @@ export function RadioPlayerProvider({ children }: { children: React.ReactNode })
       }}
     >
       {children}
-      <audio ref={audioRef} preload="none" onPause={() => setIsPlaying(false)} />
+      {/* Switching streams can fire a late "pause" for the old one; the "play" after it sets this back. */}
+      <audio
+        ref={audioRef}
+        preload="none"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onError={() => setIsPlaying(false)}
+      />
     </RadioPlayerContext.Provider>
   );
 }
