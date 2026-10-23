@@ -8,19 +8,21 @@ import { Slider } from "@/components/Slider";
 import { formatShowTitle, useCurrentShow } from "@/lib/use-current-show";
 
 // Mini player pinned to the bottom of the screen on every page except the homepage,
-// which has the full player. Both control the same shared stream (see RadioPlayerProvider).
+// which has the full player. Both control the same shared player (see RadioPlayerProvider).
+// When a KSDT Sports game is on the player, the bar shows the game instead of the radio show,
+// and it shows on the homepage too, since the homepage player only controls the station.
 // The `data-streaming-bar` attribute reserves room for it at the bottom of the page
 // (see globals.css).
 export function StreamingBar() {
   const pathname = usePathname();
   const [dismissed, setDismissed] = useState(false);
-  const { isPlaying, isMuted, volume, togglePlay, toggleMute, setVolume } = useRadioPlayer();
+  const { stream, isPlaying, isMuted, volume, togglePlay, toggleMute, setVolume } = useRadioPlayer();
   const currentShow = useCurrentShow();
   // Radio.co's track info lags behind during live sets, so show the scheduled show and DJ.
-  const title = formatShowTitle(currentShow);
-  const subtitle = currentShow?.slot.dj ?? "";
+  const title = stream ? stream.title : formatShowTitle(currentShow);
+  const subtitle = stream ? stream.subtitle : (currentShow?.slot.dj ?? "");
 
-  if (pathname === "/" || dismissed) return null;
+  if ((pathname === "/" && !stream) || dismissed) return null;
 
   return (
     <div

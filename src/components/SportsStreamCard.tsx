@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
 import Image from "next/image";
+import { useRadioPlayer } from "@/components/RadioPlayerProvider";
 import type { SportsStream } from "@/lib/sports-data";
 
 export function Broadcasters({ names, className = "" }: { names: string[]; className?: string }) {
@@ -42,32 +42,20 @@ function StatusPill({ live }: { live: boolean }) {
 }
 
 // Mobile sizes use `--u` (one design pixel, scaled to the column width) from the Sports page.
+// Plays through the site-wide player (see RadioPlayerProvider), so the game takes over from the
+// station, shows in the player bar, and keeps playing on other pages.
 export function SportsStreamCard({ stream }: { stream: SportsStream }) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = useState(false);
+  const player = useRadioPlayer();
   const canPlay = stream.live && Boolean(stream.streamUrl);
+  const playing = Boolean(stream.streamUrl) && player.isPlaying && player.stream?.url === stream.streamUrl;
 
-  const togglePlayback = async () => {
-    const audio = audioRef.current;
-    if (!audio || !stream.streamUrl) return;
-
-    if (playing) {
-      // Drop the source instead of just pausing, so the live feed stops downloading
-      // and pressing play again rejoins the broadcast live rather than where it paused.
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
-      setPlaying(false);
-      return;
-    }
-
-    audio.src = stream.streamUrl;
-    setPlaying(true);
-    try {
-      await audio.play();
-    } catch {
-      setPlaying(false);
-    }
+  const togglePlayback = () => {
+    if (!stream.streamUrl) return;
+    player.toggleStream({
+      url: stream.streamUrl,
+      title: stream.matchup,
+      subtitle: stream.broadcasters.length ? stream.broadcasters.join(" & ") : stream.sport,
+    });
   };
 
   return (
@@ -118,7 +106,6 @@ export function SportsStreamCard({ stream }: { stream: SportsStream }) {
             />
           )}
         </button>
-        {canPlay && <audio ref={audioRef} preload="none" onPause={() => setPlaying(false)} onError={() => setPlaying(false)} />}
       </div>
 
       <div className="flex items-end justify-between gap-[calc(8*var(--u))] lg:gap-2">
@@ -127,8 +114,8 @@ export function SportsStreamCard({ stream }: { stream: SportsStream }) {
           <p className="mt-[calc(3*var(--u))] text-[length:calc(16.74*var(--u))] lg:mt-0 lg:text-[36px]/[normal]">{stream.matchup}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end">
-          <Broadcasters names={stream.broadcasters} />
-          {!stream.live && <p className="mt-[calc(7*var(--u))] text-[length:calc(7*var(--u))] lg:mt-[7px] lg:text-[15px]/[normal]">UPCOMING</p>}
+          {stream.broadcasters.length > 0 && <Broadcasters names={stream.broadcasters} />}
+          {!stream.live && stream.date && <p className="mt-[calc(7*var(--u))] text-[length:calc(7*var(--u))] lg:mt-[7px] lg:text-[15px]/[normal]">UPCOMING</p>}
           <p
             className={`text-[length:calc(11.16*var(--u))] text-[#c3c3c3] lg:text-[24px]/[normal] ${
               stream.live ? "mt-[calc(13*var(--u))] lg:mt-[17px]" : ""

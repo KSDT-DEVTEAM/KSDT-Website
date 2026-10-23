@@ -1,4 +1,4 @@
-// Placeholder content for the Sports page. Swap these for real API/CMS data later.
+// Stream content for the Sports page. Games come from the station calendar (see sports-calendar.ts).
 
 export type SportsStream = {
   name: string;
@@ -16,31 +16,26 @@ export type SportsGame = {
   matchup: string;
   broadcasters: string[];
   date: string;
+  /** True while the game is on (between its calendar start and end). */
+  live: boolean;
 };
 
-export const sportsStreams: SportsStream[] = [
+/** Stream details shown when a stream has no game: Second Stream always, Main Stream when the calendar has none. */
+export const noGame: SportsGame = {
+  sport: "KSDT SPORTS",
+  matchup: "No game scheduled",
+  broadcasters: [],
+  date: "",
+  live: false,
+};
+
+// The game fields (and `live`) are filled in on the Sports page: Main Stream shows the next game from the calendar.
+export const sportsStreams: Omit<SportsStream, keyof SportsGame>[] = [
   {
     name: "Main Stream",
-    live: true,
     streamUrl: "https://s4.radio.co/sdb5184873/listen",
-    sport: "MEN’S BASKETBALL",
-    matchup: "UC San Diego vs. UC Irvine",
-    broadcasters: ["Sasha Duda", "Dean Bakker"],
-    date: "Mon, May 4",
   },
   {
     name: "Second Stream",
-    live: false,
-    sport: "WOMEN’S WATER POLO",
-    matchup: "UC San Diego @ CSUN",
-    broadcasters: ["Sasha Duda", "Dean Bakker"],
-    date: "Tues, May 5",
   },
 ];
-
-export const upcomingGames: SportsGame[] = Array.from({ length: 5 }, () => ({
-  sport: "SOFTBALL",
-  matchup: "UC San Diego vs. UC Santa Barbara",
-  broadcasters: ["Sasha Duda", "Dean Bakker"],
-  date: "Mon, May 4",
-}));
