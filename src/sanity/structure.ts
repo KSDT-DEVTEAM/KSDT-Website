@@ -1,9 +1,10 @@
 import type {StructureResolver} from 'sanity/structure'
 
-import {postCategories} from './categories'
+import {fallbackCategory, postCategories} from './categories'
 
 // https://www.sanity.io/docs/structure-builder-cheat-sheet
-// One list per post category (Reviews, Interviews, …), posts with no category yet, then all posts and people.
+// One list per post category (Reviews, Interviews, …), then all posts and people.
+// Posts with no category show in the fallback category's list (Other).
 export const structure: StructureResolver = (S) =>
   S.list()
     .title('Content')
@@ -17,23 +18,12 @@ export const structure: StructureResolver = (S) =>
             S.documentList()
               .title(section)
               .schemaType('post')
-              .filter('_type == "post" && category == $category')
-              .params({category: value})
+              .filter('_type == "post" && coalesce(category, $fallback) == $category')
+              .params({category: value, fallback: fallbackCategory})
               .defaultOrdering([{field: 'date', direction: 'desc'}])
               .initialValueTemplates([S.initialValueTemplateItem(`post-${value}`)]),
           ),
       ),
-      S.listItem()
-        .id('uncategorized')
-        .title('No category')
-        .schemaType('post')
-        .child(
-          S.documentList()
-            .title('No category')
-            .schemaType('post')
-            .filter('_type == "post" && !defined(category)')
-            .defaultOrdering([{field: 'date', direction: 'desc'}]),
-        ),
       S.documentTypeListItem('post').title('All posts'),
       S.divider(),
       S.documentTypeListItem('person').title('People'),

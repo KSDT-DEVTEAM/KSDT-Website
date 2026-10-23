@@ -4,7 +4,7 @@ import { SanityImage } from "@/components/SanityImage";
 import { urlFor } from "@/sanity/lib/image";
 import type { ContentImage, GalleryBlock, ImageBlock, PostDetail } from "@/sanity/lib/posts";
 
-// A single Media post. Used by /media/[slug].
+// A single post. Used by /media/[slug] and, for News posts, /news/[slug].
 // Same 1152px-wide container as the other pages, with the article text kept to a readable width.
 
 function ContentPhoto({
@@ -101,7 +101,16 @@ const contentComponents: PortableTextComponents = {
 
 // Laid out from the Figma "Media underscores" frames: mobile stacks a full-width cover photo,
 // title and byline; desktop puts the cover photo beside them.
-export function PostArticle({ post, backHref }: { post: PostDetail; backHref: string }) {
+export function PostArticle({
+  post,
+  backHref,
+  backLabel,
+}: {
+  post: PostDetail;
+  backHref: string;
+  /** Desktop link at the end of the post, e.g. "Back to Media". */
+  backLabel: string;
+}) {
   return (
     <article className="px-4 pt-6 pb-16 lg:mx-auto lg:max-w-[1152px] lg:px-8 lg:pt-12 lg:pb-24">
       <Link href={backHref} className="text-lg/[normal] font-light lg:text-2xl/[normal]">
@@ -145,7 +154,7 @@ export function PostArticle({ post, backHref }: { post: PostDetail; backHref: st
       </div>
 
       <Link href={backHref} className="mt-8 hidden text-2xl/[normal] font-light lg:inline-block">
-        {"<<"} Back to Media
+        {"<<"} {backLabel}
       </Link>
     </article>
   );

@@ -1,4 +1,4 @@
-// Media post queries for the Media page, the homepage and the post pages.
+// Post queries for the Media and News pages, the homepage and the post pages.
 // Each query returns posts already shaped for the post cards, so components never touch raw Sanity data.
 //
 // Field names follow the existing "KSDT Blog" schema in the production dataset:
@@ -8,13 +8,20 @@ import { cache } from "react";
 import { connection } from "next/server";
 import { defineQuery, type PortableTextBlock } from "next-sanity";
 import type { SanityImageSource } from "@sanity/image-url";
-import { postCategories, type PostCategory } from "../categories";
+import {
+  fallbackCategory,
+  newsCategory,
+  newsSections,
+  postCategories,
+  type NewsSection,
+  type PostCategory,
+} from "../categories";
 import { client } from "./client";
 import { urlFor } from "./image";
 
 export type PostCard = {
   _id: string;
-  /** Pink label above the title: the category (e.g. "REVIEW"), or "FEATURED" in the featured list. */
+  /** Pink label above the title: the category (e.g. "REVIEW") or News section (e.g. "UCSD"), or "FEATURED" in the Media featured list. */
   label: string;
   /** Leave out to show a grey placeholder. */
   imageSrc?: string;
@@ -61,31 +68,53 @@ export type PostDetail = PostCard & {
   content: PostContent;
 };
 
+// A post's category, with uncategorized posts counted as the fallback category.
+const category = /* groq */ `coalesce(category, "${fallbackCategory}")`;
+
 // Fields every card needs.
 const cardFields = /* groq */ `
   _id,
   title,
   date,
-  category,
+  "category": ${category},
+  newsSection,
   coverImage,
   "author": author->{firstName, lastName},
-  "href": "/media/" + slug.current
+  "href": select(${category} == "${newsCategory}" => "/news/", "/media/") + slug.current
 `;
 
 const isListed = /* groq */ `_type == "post" && defined(slug.current) && defined(date)`;
 
+// News posts have their own page, so the Media page's lists leave them out.
+const isMedia = /* groq */ `${category} != "${newsCategory}"`;
+
+// News posts, optionally just one section ($section == "" for both) or just featured projects.
+const isNews = /* groq */ `
+  ${category} == "${newsCategory}"
+  && ($section == "" || newsSection == $section)
+  && (!$featured || featuredProject == true)
+`;
+
 const LATEST_POSTS_QUERY = defineQuery(`
-  *[${isListed}] | order(date desc) [0...$limit] { ${cardFields} }
+  *[${isListed} && ${isMedia}] | order(date desc) [0...$limit] { ${cardFields} }
 `);
 
 const CATEGORY_POSTS_QUERY = defineQuery(`
-  *[${isListed} && category == $category] | order(date desc) [0...$limit] { ${cardFields} }
+  *[${isListed} && ${category} == $category] | order(date desc) [0...$limit] { ${cardFields} }
 `);
 
 // Images inside the content need their asset's size for layout, so expand the asset references.
-// $category == "" lists every post.
+// $category == "" lists every post except News.
 const ALL_POSTS_QUERY = defineQuery(`
-  *[${isListed} && ($category == "" || category == $category)] | order(date desc) { ${cardFields} }
+  *[${isListed} && (($category == "" && ${isMedia}) || ${category} == $category)] | order(date desc) { ${cardFields} }
+`);
+
+const NEWS_POSTS_QUERY = defineQuery(`
+  *[${isListed} && ${isNews}] | order(date desc) [0...$limit] { ${cardFields} }
+`);
+
+const ALL_NEWS_POSTS_QUERY = defineQuery(`
+  *[${isListed} && ${isNews}] | order(date desc) { ${cardFields} }
 `);
 
 const POST_QUERY = defineQuery(`
@@ -107,6 +136,7 @@ type RawCard = {
   href: string;
   date: string;
   category: string | null;
+  newsSection: string | null;
   coverImage: (SanityImageSource & { alt?: string }) | null;
   author: { firstName?: string; lastName?: string } | null;
 };
@@ -122,12 +152,16 @@ export function categoryLabel(category: string | null | undefined) {
   return postCategories.find((c) => c.value === category)?.label;
 }
 
-function toCard({ _id, title, href, date, category, coverImage, author }: RawCard): PostCard {
+function toCard({ _id, title, href, date, category, newsSection, coverImage, author }: RawCard): PostCard {
+  const label =
+    category === newsCategory
+      ? (newsSections.find((s) => s.value === newsSection)?.label ?? "NEWS")
+      : (categoryLabel(category) ?? "MEDIA");
   return {
     _id,
     title: title.trim(),
     href,
-    label: categoryLabel(category) ?? "MEDIA",
+    label,
     // urlFor applies the editor's crop; the next/image loader adds the size.
     imageSrc: coverImage ? urlFor(coverImage).url() : undefined,
     author: [author?.firstName, author?.lastName].filter(Boolean).join(" "),
@@ -135,7 +169,7 @@ function toCard({ _id, title, href, date, category, coverImage, author }: RawCar
   };
 }
 
-/** The most recently published posts, labeled "FEATURED". */
+/** The most recently published Media posts, labeled "FEATURED". */
 export async function getFeaturedPosts(limit = 3) {
   const posts = await fetchPosts<RawCard[]>(LATEST_POSTS_QUERY, { limit });
   return posts.map((post) => ({ ...toCard(post), label: "FEATURED" }));
@@ -153,9 +187,30 @@ export type PostQuarter = {
   posts: PostCard[];
 };
 
-/** Every post in a category (or every post), grouped by school quarter, newest first. */
+/** Every post in a category (or every Media post), grouped by school quarter, newest first. */
 export async function getPostsByQuarter(category?: PostCategory): Promise<PostQuarter[]> {
-  const posts = await fetchPosts<RawCard[]>(ALL_POSTS_QUERY, { category: category ?? "" });
+  return groupByQuarter(await fetchPosts<RawCard[]>(ALL_POSTS_QUERY, { category: category ?? "" }));
+}
+
+/** Which News posts to list: one section (or both), and optionally just featured intern projects. */
+export type NewsFilter = { section?: NewsSection; featured?: boolean };
+
+function newsParams({ section, featured = false }: NewsFilter) {
+  return { section: section ?? "", featured };
+}
+
+/** Newest News posts, e.g. the UCSD ones or the featured projects. */
+export async function getNewsPosts(filter: NewsFilter, limit: number) {
+  const posts = await fetchPosts<RawCard[]>(NEWS_POSTS_QUERY, { ...newsParams(filter), limit });
+  return posts.map(toCard);
+}
+
+/** Every News post matching the filter, grouped by school quarter, newest first. */
+export async function getNewsByQuarter(filter: NewsFilter): Promise<PostQuarter[]> {
+  return groupByQuarter(await fetchPosts<RawCard[]>(ALL_NEWS_POSTS_QUERY, newsParams(filter)));
+}
+
+function groupByQuarter(posts: RawCard[]): PostQuarter[] {
   const current = quarterLabel(new Date().toISOString());
   const quarters: PostQuarter[] = [];
   for (const post of posts) {

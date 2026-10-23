@@ -1,15 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
-import { featuredProjectQuarters, type NewsPost } from "@/lib/news-data";
+import { SanityImage } from "@/components/SanityImage";
+import { getNewsByQuarter, type PostCard } from "@/sanity/lib/posts";
 
 // The site header, footer and streaming bar come from the root layout,
 // so this page only renders the Featured Intern Projects content in between.
 //
 // Mobile is one column of wide cards. Desktop (lg:) uses the same 1152px-wide container as the
 // News page, with each quarter's projects in a two-column grid.
+//
+// The projects are News posts marked "Featured intern project" in Sanity, from both UCSD and Global.
 
 // Wide card: photo on the left (grey box until there's a photo), text on the right.
-function ProjectCard({ post }: { post: NewsPost }) {
+function ProjectCard({ post }: { post: PostCard }) {
   return (
     <Link
       href={post.href}
@@ -17,7 +19,7 @@ function ProjectCard({ post }: { post: NewsPost }) {
     >
       <div className="relative h-28 w-40 shrink-0 self-center bg-zinc-300 lg:h-[148px] lg:w-[211px]">
         {post.imageSrc && (
-          <Image
+          <SanityImage
             src={post.imageSrc}
             alt=""
             fill
@@ -40,7 +42,9 @@ function ProjectCard({ post }: { post: NewsPost }) {
   );
 }
 
-export default function Page() {
+export default async function Page() {
+  const quarters = await getNewsByQuarter({ featured: true });
+
   return (
     <div className="px-4 pb-16 pt-4 lg:mx-auto lg:max-w-[1152px] lg:px-8 lg:pt-12 lg:pb-24">
       <Link href="/news" className="text-lg font-light lg:text-2xl">
@@ -53,7 +57,7 @@ export default function Page() {
         the news department, imbued with journalistic rigor and local identity.
       </p>
 
-      {featuredProjectQuarters.map((quarter, i) => (
+      {quarters.map((quarter, i) => (
         <section
           key={quarter.label}
           className={
@@ -64,8 +68,8 @@ export default function Page() {
         >
           <h2 className="font-mono text-lg lg:text-2xl">{quarter.label}</h2>
           <div className="mt-4 flex flex-col gap-4 lg:mt-8 lg:grid lg:grid-cols-2 lg:gap-x-4 lg:gap-y-5">
-            {quarter.posts.map((post, j) => (
-              <ProjectCard key={`${post.title}-${j}`} post={post} />
+            {quarter.posts.map((post) => (
+              <ProjectCard key={post._id} post={post} />
             ))}
           </div>
         </section>

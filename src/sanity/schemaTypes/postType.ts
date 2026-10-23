@@ -1,11 +1,12 @@
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-import {postCategories} from '../categories'
+import {fallbackCategory, newsCategory, newsSections, postCategories} from '../categories'
 
 // Matches the post schema of the existing "KSDT Blog" Studio (ksdt.sanity.studio), which owns the
 // real posts in the production dataset. Keep field names and types the same so both Studios can edit
-// the same documents. The only addition is `category`.
+// the same documents. The only additions are `category` and, for News posts, `newsSection` and
+// `featuredProject`.
 //
 // The old Studio also allows a "Text Content" (contentBlock) item in `content`. No post uses it,
 // so it's left out here.
@@ -24,7 +25,7 @@ export const postType = defineType({
     defineField({
       name: 'slug',
       type: 'slug',
-      description: 'The post’s URL: /media/<slug>',
+      description: 'The post’s URL: /media/<slug>, or /news/<slug> for News posts',
       options: {
         source: 'title',
         maxLength: 96,
@@ -34,13 +35,37 @@ export const postType = defineType({
     defineField({
       name: 'category',
       type: 'string',
-      description: 'Decides which section of the Media page the post shows in.',
+      description: 'Decides which section of the Media page the post shows in. News posts go on the News page.',
       options: {
         list: postCategories.map(({title, value}) => ({title, value})),
         layout: 'radio',
         direction: 'horizontal',
       },
-      validation: (rule) => rule.required().error('Pick Review or Interview before publishing.'),
+      validation: (rule) => rule.required().error('Pick a category before publishing.'),
+    }),
+    defineField({
+      name: 'newsSection',
+      title: 'News section',
+      type: 'string',
+      description: 'Decides which section of the News page the post shows in.',
+      options: {
+        list: newsSections.map(({title, value}) => ({title, value})),
+        layout: 'radio',
+        direction: 'horizontal',
+      },
+      hidden: ({document}) => document?.category !== newsCategory,
+      validation: (rule) =>
+        rule.custom((value, {document}) =>
+          document?.category === newsCategory && !value ? 'Pick UCSD or Global before publishing.' : true,
+        ),
+    }),
+    defineField({
+      name: 'featuredProject',
+      title: 'Featured intern project',
+      type: 'boolean',
+      description: 'Shows the post under Featured Work on the News page and the homepage.',
+      initialValue: false,
+      hidden: ({document}) => document?.category !== newsCategory,
     }),
     defineField({
       name: 'content',
@@ -140,10 +165,18 @@ export const postType = defineType({
       firstName: 'author.firstName',
       lastName: 'author.lastName',
       category: 'category',
+      newsSection: 'newsSection',
       media: 'coverImage',
     },
-    prepare({title, firstName, lastName, category, media}) {
-      const categoryTitle = postCategories.find((c) => c.value === category)?.title ?? 'No category'
+    prepare({title, firstName, lastName, category, newsSection, media}) {
+      // e.g. "Review", or "News: UCSD"
+      const sectionTitle = newsSections.find((s) => s.value === newsSection)?.title
+      const categoryTitle = [
+        postCategories.find((c) => c.value === (category ?? fallbackCategory))?.title,
+        category === newsCategory && sectionTitle,
+      ]
+        .filter(Boolean)
+        .join(': ')
       const author = [firstName, lastName].filter(Boolean).join(' ')
       return {title, subtitle: [categoryTitle, author && `by ${author}`].filter(Boolean).join(' · '), media}
     },
