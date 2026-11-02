@@ -7,9 +7,13 @@ import { Broadcasters, SportsStreamCard } from "@/components/SportsStreamCard";
 // so this page only renders the Sports content in between.
 
 export default async function Page() {
-  const upcomingGames = await getUpcomingGames();
-  const [nextGame = noGame] = upcomingGames;
-  const streams = sportsStreams.map((stream, i) => ({ ...stream, ...(i === 0 ? nextGame : noGame) }));
+  const games = await getUpcomingGames();
+  const upcomingGames = games.slice(0, 5);
+  // Stream numbers in the calendar tags count from 1, in the order of `sportsStreams`.
+  const streams = sportsStreams.map((stream, i) => ({
+    ...stream,
+    ...(games.find((game) => game.stream === i + 1) ?? noGame),
+  }));
 
   return (
     // Sports uses SF Pro Black in the design; fall back to the system UI font elsewhere.
