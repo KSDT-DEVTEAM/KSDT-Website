@@ -100,7 +100,12 @@ export function NowPlayingCard() {
             onClick={toggleMute}
             className="shrink-0"
           >
-            <Image src="/images/sound-on.svg" alt="" width={24} height={26} />
+            <Image
+                src={isMuted ? "/images/sound-off.svg" : "/images/sound-on.svg"}
+                alt=""
+                width={isMuted ? 20 : 24}
+                height={26}
+              />
           </button>
           <Slider
             value={volume}
@@ -129,7 +134,12 @@ export function NowPlayingCard() {
               onClick={toggleMute}
               className="shrink-0"
             >
-              <Image src="/images/volume.svg" alt="" width={24} height={24} />
+              <Image
+                src={isMuted ? "/images/volume-muted.svg" : "/images/volume.svg"}
+                alt=""
+                width={24}
+                height={24}
+              />
             </button>
             <Slider value={volume} onChange={setVolume} label="Volume" className="h-[5px] w-[117px]" {...desktopSlider} />
           </div>

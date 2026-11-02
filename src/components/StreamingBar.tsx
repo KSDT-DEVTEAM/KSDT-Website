@@ -62,8 +62,19 @@ export function StreamingBar() {
             onClick={toggleMute}
             className="shrink-0"
           >
-            <Image src="/images/stream-volume.svg" alt="" width={24} height={24} className="lg:hidden" />
-            <Image src="/images/volume.svg" alt="" width={24} height={24} className="hidden lg:block" />
+            <Image
+              src={isMuted ? "/images/volume-muted.svg" : "/images/stream-volume.svg"}
+              alt=""
+              width={isMuted? 20 : 24}
+              height={24}
+              className="lg:hidden"
+            />
+            <Image
+              src={isMuted ? "/images/volume-muted.svg" : "/images/volume.svg"}
+              alt=""
+              width={24}
+              height={24}
+              className="hidden lg:block" />
           </button>
           <div className="flex h-6 w-0 items-center overflow-hidden opacity-0 transition-all duration-200 group-hover:w-[88px] group-hover:opacity-100 group-focus-within:w-[88px] group-focus-within:opacity-100 lg:group-hover:w-[141px] lg:group-focus-within:w-[141px] [@media(hover:none)]:w-[88px] [@media(hover:none)]:opacity-100">
             <Slider
