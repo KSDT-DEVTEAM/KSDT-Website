@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect } from "react";
 import { useRadioPlayer } from "@/components/RadioPlayerProvider";
 import type { SportsStream } from "@/lib/sports-data";
+import { youtubeLiveEmbedUrl } from "@/lib/youtube";
 
 export function Broadcasters({ names, className = "" }: { names: string[]; className?: string }) {
   const [last, ...rest] = [...names].reverse();
@@ -44,17 +46,31 @@ function StatusPill({ live }: { live: boolean }) {
 // Mobile sizes use `--u` (one design pixel, scaled to the column width) from the Sports page.
 // Plays through the site-wide player (see RadioPlayerProvider), so the game takes over from the
 // station, shows in the player bar, and keeps playing on other pages.
+// A stream from a YouTube channel can always be pressed: it shows LIVE while playing, and
+// "Not live right now" if the channel has nothing live.
 export function SportsStreamCard({ stream }: { stream: SportsStream }) {
   const player = useRadioPlayer();
-  const canPlay = stream.live && Boolean(stream.streamUrl);
-  const playing = Boolean(stream.streamUrl) && player.isPlaying && player.stream?.url === stream.streamUrl;
+  const { prepareYouTube } = player;
+  const youtube = Boolean(stream.youtubeChannelId);
+  const url = stream.youtubeChannelId ? youtubeLiveEmbedUrl(stream.youtubeChannelId) : stream.streamUrl;
+  const canPlay = youtube || (stream.live && Boolean(url));
+  const playing = Boolean(url) && player.isPlaying && player.stream?.url === url;
+  const notLive = Boolean(url) && player.notLiveUrl === url;
+
+  // Load the YouTube player before the click, so playback can start from the click itself
+  // (mobile browsers block playback that starts later).
+  useEffect(() => {
+    if (youtube && url) prepareYouTube(url);
+  }, [youtube, url, prepareYouTube]);
 
   const togglePlayback = () => {
-    if (!stream.streamUrl) return;
+    if (!url) return;
     player.toggleStream({
-      url: stream.streamUrl,
-      title: stream.matchup,
+      url,
+      // Without a game on, the player bar shows the stream's name instead of "No game scheduled".
+      title: stream.live ? stream.matchup : stream.name,
       subtitle: stream.broadcasters.length ? stream.broadcasters.join(" & ") : stream.sport,
+      youtube,
     });
   };
 
@@ -62,7 +78,7 @@ export function SportsStreamCard({ stream }: { stream: SportsStream }) {
     <article className="flex aspect-square w-full flex-col rounded-[calc(18.6*var(--u))] border-[0.465px] border-[rgba(204,204,204,0.5)] bg-[rgba(0,17,43,0.2)] pt-[calc(12.65*var(--u))] pr-[calc(20*var(--u))] pb-[calc(20*var(--u))] pl-[calc(21.5*var(--u))] lg:aspect-auto lg:min-h-[500px] lg:rounded-[40px] lg:border lg:pt-[22px] lg:pr-[37px] lg:pb-10 lg:pl-10">
       <div className="flex items-center justify-between gap-[calc(8*var(--u))] lg:gap-2">
         <h2 className="text-[length:calc(15*var(--u))] lg:text-[32px]/[normal]">{stream.name}</h2>
-        <StatusPill live={stream.live} />
+        <StatusPill live={stream.live || (youtube && playing)} />
       </div>
 
       <div className="flex flex-1 items-center justify-center">
@@ -115,6 +131,11 @@ export function SportsStreamCard({ stream }: { stream: SportsStream }) {
         </div>
         <div className="flex shrink-0 flex-col items-end">
           {stream.broadcasters.length > 0 && <Broadcasters names={stream.broadcasters} />}
+          {notLive && (
+            <p role="status" className="text-[length:calc(11.16*var(--u))] text-[#c3c3c3] lg:text-[24px]/[normal]">
+              Not live right now
+            </p>
+          )}
           {!stream.live && stream.date && <p className="mt-[calc(7*var(--u))] text-[length:calc(7*var(--u))] lg:mt-[7px] lg:text-[15px]/[normal]">UPCOMING</p>}
           <p
             className={`text-[length:calc(11.16*var(--u))] text-[#c3c3c3] lg:text-[24px]/[normal] ${
