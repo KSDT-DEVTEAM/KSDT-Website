@@ -40,7 +40,7 @@ const desktopSlider = {
 
 export function NowPlayingCard() {
   const player = useRadioPlayer();
-  const { volume, setVolume } = player;
+  const { volume, setVolume, isMuted, toggleMute } = player;
   // This card is the station player: it only shows as playing for the station, and pressing play
   // switches back to the station if a KSDT Sports game is on.
   const isPlaying = player.isPlaying && !player.stream;
@@ -93,7 +93,15 @@ export function NowPlayingCard() {
         <p className="text-lg">{trackArtist}</p>
 
         <div className="mt-4 flex items-center gap-3">
-          <Image src="/images/sound-on.svg" alt="Volume" width={24} height={26} />
+          <button
+            type="button"
+            aria-label={isMuted ? "Unmute" : "Mute"}
+            aria-pressed={isMuted}
+            onClick={toggleMute}
+            className="shrink-0"
+          >
+            <Image src="/images/sound-on.svg" alt="" width={24} height={26} />
+          </button>
           <Slider
             value={volume}
             onChange={setVolume}
@@ -114,7 +122,15 @@ export function NowPlayingCard() {
             <p className="mt-1">{trackArtist}</p>
           </div>
           <div className="flex shrink-0 items-center gap-4 pt-2">
-            <Image src="/images/volume.svg" alt="Volume" width={24} height={24} />
+            <button
+              type="button"
+              aria-label={isMuted ? "Unmute" : "Mute"}
+              aria-pressed={isMuted}
+              onClick={toggleMute}
+              className="shrink-0"
+            >
+              <Image src="/images/volume.svg" alt="" width={24} height={24} />
+            </button>
             <Slider value={volume} onChange={setVolume} label="Volume" className="h-[5px] w-[117px]" {...desktopSlider} />
           </div>
         </div>
