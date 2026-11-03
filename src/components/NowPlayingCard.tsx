@@ -93,24 +93,8 @@ export function NowPlayingCard() {
         <p className="text-lg">{trackArtist}</p>
 
         <div className="mt-4 flex items-center gap-3">
-          <button
-            type="button"
-            aria-label={isMuted ? "Unmute" : "Mute"}
-            aria-pressed={isMuted}
-            onClick={toggleMute}
-            className="shrink-0"
-          >
-            <Image
-                src={isMuted ? "/images/sound-off.svg" : "/images/sound-on.svg"}
-                alt=""
-                width={isMuted ? 20 : 24}
-                height={26}
-              />
-          </button>
           <Slider
-            value={volume}
-            onChange={setVolume}
-            label="Volume"
+            value={(showElapsed ?? 0) / SHOW_LENGTH_SECONDS}
             className="h-[2px] flex-1"
             trackClassName="bg-white/30"
             fillClassName="h-full bg-white"
