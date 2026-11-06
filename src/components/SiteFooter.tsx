@@ -16,9 +16,8 @@ const linkGroups: { heading: string; links: { label: string; href?: string }[] }
   {
     heading: "Get Involved",
     links: [
-      { label: "Join KSDT" },
-      { label: "Book a room" },
-      { label: "Contact" },
+      { label: "Join KSDT", href:"/join" },
+      { label: "Contact", href: "mailto:outreach@ksdt.org" },
     ],
   },
 ];
