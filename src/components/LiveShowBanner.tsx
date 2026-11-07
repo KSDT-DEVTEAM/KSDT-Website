@@ -22,7 +22,7 @@ export function LiveShowBanner() {
           </div>
           <div className="col-start-1 row-start-1 flex flex-col justify-center gap-[5px]">
             {title && <p className="text-lg font-bold lg:leading-[normal]">{title}</p>}
-            {dj && <p className="text-sm font-light lg:text-lg/[normal]">{dj}</p>}
+            {dj && <p className="text-sm font-light lg:leading-[normal]">{dj}</p>}
           </div>
         </div>
         <button
