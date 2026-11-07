@@ -1,7 +1,7 @@
 // Upcoming games for the Sports page, read from the station's Google Calendar.
 //
 // The calendar is the shared staff calendar, so only events whose title starts with "[Game]" are
-// used, and only the fields the page shows (sport, matchup, date, broadcasters) leave this file.
+// used, and only the fields the page shows (sport, matchup, date, broadcasters, stream) leave this file.
 // Everything else in the calendar stays on the server.
 //
 // SPORTS_CALENDAR_ICS_URL is the calendar's "Secret address in iCal format" (Google Calendar →
@@ -10,13 +10,18 @@
 //
 // Event format:
 //   Title:       [Game] Women's Volleyball vs. UC Irvine (Home)
+//                ("[Game - 2]" for a game on Second Stream; plain "[Game]" is Main Stream)
 //   Description: lines "Broadcaster #1: Sasha Duda" and "Broadcaster #2: Dean Bakker" ("-" for nobody yet)
 
 import { connection } from "next/server";
 import type { SportsGame } from "./sports-data";
 
 const TIME_ZONE = "America/Los_Angeles";
-const GAME_TAG = /^\s*\[game\]\s*/i;
+// "[Game]", or "[Game - 2]" (also "[Game-2]", "[Game 2]") with the stream number.
+const GAME_TAG = /^\s*\[game(?:\s*-?\s*(\d+))?\]\s*/i;
+
+/** A game from the calendar, with which stream carries it: 1 (Main Stream) or 2 (Second Stream). */
+export type CalendarGame = SportsGame & { stream: number };
 
 type CalendarEvent = {
   summary: string;
@@ -130,8 +135,8 @@ function formatDate(start: string) {
   return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", weekday: "short", month: "short", day: "numeric" }).format(date);
 }
 
-/** The next `limit` games that haven't ended yet, soonest first. Empty if the calendar can't be read. */
-export async function getUpcomingGames(limit = 5): Promise<SportsGame[]> {
+/** Every game that hasn't ended yet, soonest first. Empty if the calendar can't be read. */
+export async function getUpcomingGames(): Promise<CalendarGame[]> {
   // Fetch at request time so calendar edits show up without a redeploy.
   await connection();
 
@@ -159,9 +164,9 @@ export async function getUpcomingGames(limit = 5): Promise<SportsGame[]> {
   return parseEvents(ics)
     .filter((event) => GAME_TAG.test(event.summary) && event.end > now)
     .sort((a, b) => a.start.localeCompare(b.start))
-    .slice(0, limit)
     .map((event) => ({
       ...parseTitle(event.summary.replace(GAME_TAG, "").trim()),
+      stream: Number(event.summary.match(GAME_TAG)?.[1] ?? 1),
       broadcasters: parseBroadcasters(event.description),
       date: formatDate(event.start),
       live: event.start <= now,

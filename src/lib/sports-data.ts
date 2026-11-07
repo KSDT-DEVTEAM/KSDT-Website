@@ -5,8 +5,12 @@ export type SportsStream = {
   live: boolean;
   /** Direct audio stream URL (radio.co). Omit when the stream has no feed yet. */
   streamUrl?: string;
-  /** Link opened instead of playing in the site player (e.g. a YouTube channel). Takes precedence over `streamUrl`. */
-  externalUrl?: string;
+  /**
+   * YouTube channel ID (the UC… ID, not the @handle) whose current live stream this plays as audio,
+   * instead of `streamUrl`. The button is always enabled, since the site can't tell whether the
+   * channel is live until it tries to play.
+   */
+  youtubeChannelId?: string;
   sport: string;
   matchup: string;
   broadcasters: string[];
@@ -22,7 +26,7 @@ export type SportsGame = {
   live: boolean;
 };
 
-/** Stream details shown when a stream has no game: Second Stream always, Main Stream when the calendar has none. */
+/** Stream details shown when the calendar has no game coming up for a stream. */
 export const noGame: SportsGame = {
   sport: "KSDT SPORTS",
   matchup: "No game scheduled",
@@ -31,7 +35,8 @@ export const noGame: SportsGame = {
   live: false,
 };
 
-// The game fields (and `live`) are filled in on the Sports page: Main Stream shows the next game from the calendar.
+// The game fields (and `live`) are filled in on the Sports page: each stream shows its next game from
+// the calendar ("[Game]" events for Main Stream, "[Game - 2]" for Second Stream), in this order.
 export const sportsStreams: Omit<SportsStream, keyof SportsGame>[] = [
   {
     name: "Main Stream",
