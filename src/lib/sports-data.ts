@@ -11,6 +11,8 @@ export type SportsStream = {
    * channel is live until it tries to play.
    */
   youtubeChannelId?: string;
+  /** Link opened in a new tab instead of playing anything in the site player. Takes precedence over the fields above. */
+  externalUrl?: string;
   sport: string;
   matchup: string;
   broadcasters: string[];
