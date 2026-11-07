@@ -5,6 +5,8 @@ export type SportsStream = {
   live: boolean;
   /** Direct audio stream URL (radio.co). Omit when the stream has no feed yet. */
   streamUrl?: string;
+  /** Link opened instead of playing in the site player (e.g. a YouTube channel). Takes precedence over `streamUrl`. */
+  externalUrl?: string;
   sport: string;
   matchup: string;
   broadcasters: string[];
@@ -37,5 +39,7 @@ export const sportsStreams: Omit<SportsStream, keyof SportsGame>[] = [
   },
   {
     name: "Second Stream",
+    // The second audio feed didn't work, so this button sends listeners to the KSDT Sports YouTube channel instead.
+    externalUrl: "https://www.youtube.com/@ksdtsports",
   },
 ];
