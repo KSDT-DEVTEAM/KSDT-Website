@@ -43,6 +43,44 @@ function StatusPill({ live }: { live: boolean }) {
   );
 }
 
+function PlayButtonFrame({ playing }: { playing: boolean }) {
+  return (
+    <>
+      <Image
+        src="/images/sports-play-pause-frame.svg"
+        alt=""
+        width={179.329}
+        height={181.105}
+        className="pointer-events-none absolute top-1/2 left-1/2 h-[calc(181.105*var(--u))] w-[calc(179.329*var(--u))] max-w-none -translate-x-1/2 -translate-y-1/2 lg:hidden"
+      />
+      <Image
+        src="/images/sports-play-pause-frame-desktop.svg"
+        alt=""
+        width={362}
+        height={362}
+        className="pointer-events-none absolute top-1/2 left-1/2 hidden max-w-none -translate-x-1/2 -translate-y-1/2 lg:block"
+      />
+      {playing ? (
+        <Image
+          src="/images/sports-pause-icon.png"
+          alt=""
+          width={512}
+          height={512}
+          className="relative size-[calc(62.57*var(--u))] opacity-50 drop-shadow-[0_1.86px_1.86px_rgba(0,0,0,0.25)] lg:size-[115px] lg:drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
+        />
+      ) : (
+        <Image
+          src="/images/sports-play-icon.png"
+          alt=""
+          width={512}
+          height={512}
+          className="relative size-[calc(57.13*var(--u))] opacity-50 lg:size-[105px]"
+        />
+      )}
+    </>
+  );
+}
+
 // Mobile sizes use `--u` (one design pixel, scaled to the column width) from the Sports page.
 // Plays through the site-wide player (see RadioPlayerProvider), so the game takes over from the
 // station, shows in the player bar, and keeps playing on other pages.
@@ -82,46 +120,28 @@ export function SportsStreamCard({ stream }: { stream: SportsStream }) {
       </div>
 
       <div className="flex flex-1 items-center justify-center">
-        <button
-          type="button"
-          aria-label={playing ? `Pause ${stream.name}` : `Play ${stream.name}`}
-          aria-pressed={playing}
-          disabled={!canPlay}
-          onClick={togglePlayback}
-          className="relative grid h-[calc(82.5*var(--u))] w-[calc(80.72*var(--u))] place-items-center disabled:cursor-not-allowed lg:size-[150px]"
-        >
-          <Image
-            src="/images/sports-play-pause-frame.svg"
-            alt=""
-            width={179.329}
-            height={181.105}
-            className="pointer-events-none absolute top-1/2 left-1/2 h-[calc(181.105*var(--u))] w-[calc(179.329*var(--u))] max-w-none -translate-x-1/2 -translate-y-1/2 lg:hidden"
-          />
-          <Image
-            src="/images/sports-play-pause-frame-desktop.svg"
-            alt=""
-            width={362}
-            height={362}
-            className="pointer-events-none absolute top-1/2 left-1/2 hidden max-w-none -translate-x-1/2 -translate-y-1/2 lg:block"
-          />
-          {playing ? (
-            <Image
-              src="/images/sports-pause-icon.png"
-              alt=""
-              width={512}
-              height={512}
-              className="relative size-[calc(62.57*var(--u))] opacity-50 drop-shadow-[0_1.86px_1.86px_rgba(0,0,0,0.25)] lg:size-[115px] lg:drop-shadow-[0_4px_4px_rgba(0,0,0,0.25)]"
-            />
-          ) : (
-            <Image
-              src="/images/sports-play-icon.png"
-              alt=""
-              width={512}
-              height={512}
-              className="relative size-[calc(57.13*var(--u))] opacity-50 lg:size-[105px]"
-            />
-          )}
-        </button>
+        {stream.externalUrl ? (
+          <a
+            href={stream.externalUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Watch ${stream.name} on YouTube`}
+            className="relative grid h-[calc(82.5*var(--u))] w-[calc(80.72*var(--u))] place-items-center disabled:cursor-not-allowed lg:size-[150px]"
+          >
+            <PlayButtonFrame playing={false} />
+          </a>
+        ) : (
+          <button
+            type="button"
+            aria-label={playing ? `Pause ${stream.name}` : `Play ${stream.name}`}
+            aria-pressed={playing}
+            disabled={!canPlay}
+            onClick={togglePlayback}
+            className="relative grid h-[calc(82.5*var(--u))] w-[calc(80.72*var(--u))] place-items-center disabled:cursor-not-allowed lg:size-[150px]"
+          >
+            <PlayButtonFrame playing={playing} />
+          </button>
+        )}
       </div>
 
       <div className="flex items-end justify-between gap-[calc(8*var(--u))] lg:gap-2">

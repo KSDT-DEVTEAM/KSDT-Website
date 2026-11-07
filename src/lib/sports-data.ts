@@ -11,6 +11,8 @@ export type SportsStream = {
    * channel is live until it tries to play.
    */
   youtubeChannelId?: string;
+  /** Link opened in a new tab instead of playing anything in the site player. Takes precedence over the fields above. */
+  externalUrl?: string;
   sport: string;
   matchup: string;
   broadcasters: string[];
@@ -44,7 +46,7 @@ export const sportsStreams: Omit<SportsStream, keyof SportsGame>[] = [
   },
   {
     name: "Second Stream",
-    // youtube.com/@ksdtsports
-    youtubeChannelId: "UCT3bxGXjs4e6sIsq4vINHBQ",
+    // The second audio feed didn't work, so this button sends listeners to the KSDT Sports YouTube channel instead.
+    externalUrl: "https://www.youtube.com/@ksdtsports",
   },
 ];
