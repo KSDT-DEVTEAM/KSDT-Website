@@ -134,7 +134,7 @@ export function MediaSection({ posts, title, href }: { posts: PostCard[]; title:
 export function MediaTitleBar({ title }: { title: string }) {
   return (
     <div className="mx-[calc(50%-50vw)] w-screen bg-[rgba(255,141,202,0.4)]">
-      <h1 className="mx-auto max-w-md px-4 py-4 text-2xl/[normal] font-bold lg:max-w-none lg:px-8 lg:text-4xl/[normal]">
+      <h1 className="mx-auto flex h-16 max-w-md items-center px-4 text-2xl font-bold lg:h-20 lg:max-w-none lg:px-8 lg:text-4xl">
         {title}
       </h1>
     </div>
