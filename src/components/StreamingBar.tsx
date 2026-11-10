@@ -64,9 +64,9 @@ export function StreamingBar() {
             style={{ cursor: 'pointer' }}
           >
             <Image
-              src={isMuted ? "/images/volume-muted.svg" : "/images/stream-volume.svg"}
+              src={isMuted ? "/images/stream-volume-muted.svg" : "/images/stream-volume.svg"}
               alt=""
-              width={isMuted? 20 : 24}
+              width={24}
               height={24}
               className="lg:hidden"
             />
