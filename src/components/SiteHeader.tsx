@@ -75,10 +75,11 @@ export function SiteHeader() {
                   type="button"
                   aria-expanded={isOpen}
                   onClick={() => setDesktopOpen(isOpen ? null : section.label)}
-                  className="flex items-center gap-2.5"
+                  className={`flex items-center gap-2.5 ${isOpen ? 'text-[#ff8dca]' : 'text-white'}`}
+                  style={{ cursor: 'pointer' }}
                 >
                   <span>{section.label}</span>
-                  <Image src="/images/nav-plus.svg" alt="" width={17} height={17} />
+                  <Image src={isOpen? "/images/nav-minus.svg" : "/images/nav-plus.svg"} alt="" width={17} height={17} />
                 </button>
                 {isOpen && (
                   <div className="absolute right-0 top-full mt-4 flex min-w-full flex-col border border-white bg-black">

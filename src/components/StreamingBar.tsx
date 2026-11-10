@@ -61,6 +61,7 @@ export function StreamingBar() {
             aria-pressed={isMuted}
             onClick={toggleMute}
             className="shrink-0"
+            style={{ cursor: 'pointer' }}
           >
             <Image
               src={isMuted ? "/images/volume-muted.svg" : "/images/stream-volume.svg"}
