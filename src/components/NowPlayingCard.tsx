@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRadioPlayer } from "@/components/RadioPlayerProvider";
 import { Slider } from "@/components/Slider";
+import { useNowPlaying } from "@/lib/radio";
 import { formatShowTitle, useCurrentShow } from "@/lib/use-current-show";
 import { slotMinutes } from "@/lib/schedule-data";
 
@@ -48,10 +49,14 @@ export function NowPlayingCard() {
   const now = useNow();
 
   const currentShow = useCurrentShow();
+  const nowPlaying = useNowPlaying();
 
-  // Radio.co's track info lags behind during live sets, so show the scheduled show and DJ.
-  const trackTitle = formatShowTitle(currentShow);
-  const trackArtist = currentShow?.slot.dj ?? "";
+  // Show the latest song logged in Spinitron. When there isn't one, fall back to the
+  // scheduled show and DJ.
+  const trackTitle = nowPlaying?.trackTitle || formatShowTitle(currentShow);
+  const trackArtist = nowPlaying ? nowPlaying.trackArtist : (currentShow?.slot.dj ?? "");
+  const trackAlbum = nowPlaying?.album ?? "";
+  const artworkSrc = nowPlaying?.artworkSrc ?? null;
 
   // How far into the hour-long show we are, counted on the visitor's clock (slot times are
   // already local). Null when nothing is on air.
@@ -73,6 +78,13 @@ export function NowPlayingCard() {
         onClick={togglePlay}
         className="relative block aspect-square w-full cursor-pointer overflow-hidden rounded-t-[25px] border border-white lg:w-[234px] lg:shrink-0 lg:rounded-none lg:border-2 lg:border-r-0"
       >
+        {artworkSrc && (
+          <>
+            <Image src={artworkSrc} alt="" fill unoptimized className="object-cover" />
+            {/* Darkens the art slightly so the play/pause icon stays visible. */}
+            <span className="absolute inset-0 bg-black/20" />
+          </>
+        )}
         <span className="absolute left-1/2 top-1/2 h-[55px] w-[45px] -translate-x-1/2 -translate-y-1/2 lg:h-[45px] lg:w-[37px]">
           {isPlaying ? (
             <PauseIcon className="size-full drop-shadow-[0_4px_5px_rgba(0,0,0,0.5)]" />
@@ -91,6 +103,7 @@ export function NowPlayingCard() {
       <div className="rounded-b-[25px] border border-t-0 border-white px-4 py-4 lg:hidden">
         <p className="text-lg font-medium">{trackTitle}</p>
         <p className="text-lg">{trackArtist}</p>
+        {trackAlbum && <p className="text-base">{trackAlbum}</p>}
 
         <div className="mt-4 flex items-center gap-3">
           <Slider
@@ -109,6 +122,7 @@ export function NowPlayingCard() {
           <div className="min-w-0">
             <p className="font-bold">{trackTitle}</p>
             <p className="mt-1">{trackArtist}</p>
+            {trackAlbum && <p className="mt-1 text-lg">{trackAlbum}</p>}
           </div>
           <div className="flex shrink-0 items-center gap-4 pt-2">
             <button
@@ -130,7 +144,7 @@ export function NowPlayingCard() {
           </div>
         </div>
 
-        {/* Counts through the current hour-long show; Radio.co doesn't report track lengths. */}
+        {/* Counts through the current hour-long show; Spinitron doesn't give live song progress. */}
         <div className="flex items-center gap-3 tabular-nums">
           {showElapsed !== null && <span>{formatClock(showElapsed)}</span>}
           <Slider value={(showElapsed ?? 0) / SHOW_LENGTH_SECONDS} className="h-[5px] flex-1" {...desktopSlider} />
